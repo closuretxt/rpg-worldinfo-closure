@@ -225,6 +225,26 @@ export function saveChatData() {
 }
 
 /**
+ * Mirrors a tracker data entry into message.swipe_info so it survives page reloads.
+ * ST only serializes swipe_info to disk; message.extra is in-memory only.
+ * Guard: skips silently if swipe_info[swipeId] doesn't exist yet
+ *
+ * @param {Object} message  - The chat message object
+ * @param {number} swipeId  - The swipe index to mirror into
+ * @param {Object} swipeEntry - { userStats, infoBox, characterThoughts }
+ */
+export function mirrorToSwipeInfo(message, swipeId, swipeEntry) {
+    if (!message.swipe_info || !message.swipe_info[swipeId]) return;
+    if (!message.swipe_info[swipeId].extra) {
+        message.swipe_info[swipeId].extra = {};
+    }
+    if (!message.swipe_info[swipeId].extra.rpg_companion_swipes) {
+        message.swipe_info[swipeId].extra.rpg_companion_swipes = {};
+    }
+    message.swipe_info[swipeId].extra.rpg_companion_swipes[swipeId] = swipeEntry;
+}
+
+/**
  * Updates the last assistant message's swipe data with current tracker data.
  * This ensures user edits are preserved across swipes and included in generation context.
  */
@@ -255,15 +275,7 @@ export function updateMessageSwipeData() {
             message.extra.rpg_companion_swipes[swipeId] = swipeEntry;
 
             // Mirror to swipe_info so data survives page reloads regardless of active swipe
-            if (message.swipe_info && message.swipe_info[swipeId]) {
-                if (!message.swipe_info[swipeId].extra) {
-                    message.swipe_info[swipeId].extra = {};
-                }
-                if (!message.swipe_info[swipeId].extra.rpg_companion_swipes) {
-                    message.swipe_info[swipeId].extra.rpg_companion_swipes = {};
-                }
-                message.swipe_info[swipeId].extra.rpg_companion_swipes[swipeId] = swipeEntry;
-            }
+            mirrorToSwipeInfo(message, swipeId, swipeEntry);
 
             // console.log('[RPG Companion] Updated message swipe data after user edit');
             break;
@@ -290,6 +302,43 @@ export function getSwipeData(message, swipeId) {
     if (fromSwipeInfo) return fromSwipeInfo;
 
     return null;
+}
+
+/**
+ * Commits tracker data from the assistant message immediately before currentMessageIndex.
+ * Walks backward through the chat skipping the current message, user messages, and system
+ * messages until it finds the prior assistant message, then loads its active swipe data.
+ * If no prior assistant message exists or exists without a tracker state, nulls out all fields so
+ * the AI generates from an empty context rather than a ghost state.
+ *
+ * @param {number} currentMessageIndex - Index of the message to start searching before
+ */
+export function commitTrackerDataFromPriorMessage(currentMessageIndex) {
+    const chat = getContext().chat;
+    if (!chat || chat.length === 0) {
+        committedTrackerData.userStats = null;
+        committedTrackerData.infoBox = null;
+        committedTrackerData.characterThoughts = null;
+        return;
+    }
+
+    for (let i = currentMessageIndex - 1; i >= 0; i--) {
+        const message = chat[i];
+        if (message.is_user || message.is_system) continue;
+
+        // Found the prior assistant message — commit its active swipe data
+        const swipeId = message.swipe_id || 0;
+        const swipeData = getSwipeData(message, swipeId);
+        committedTrackerData.userStats = swipeData?.userStats || null;
+        committedTrackerData.infoBox = swipeData?.infoBox || null;
+        committedTrackerData.characterThoughts = swipeData?.characterThoughts || null;
+        return;
+    }
+
+    // No prior assistant message found — use empty context
+    committedTrackerData.userStats = null;
+    committedTrackerData.infoBox = null;
+    committedTrackerData.characterThoughts = null;
 }
 
 /**

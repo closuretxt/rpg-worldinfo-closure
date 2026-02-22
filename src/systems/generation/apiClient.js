@@ -20,7 +20,7 @@ import {
     setLastActionWasSwipe,
     $musicPlayerContainer
 } from '../../core/state.js';
-import { saveChatData } from '../../core/persistence.js';
+import { saveChatData, mirrorToSwipeInfo } from '../../core/persistence.js';
 import {
     generateSeparateUpdatePrompt
 } from './promptBuilder.js';
@@ -317,11 +317,15 @@ export async function updateRPGData(renderUserStats, renderInfoBox, renderThough
                 }
 
                 const currentSwipeId = lastMessage.swipe_id || 0;
-                lastMessage.extra.rpg_companion_swipes[currentSwipeId] = {
+                const swipeEntry = {
                     userStats: parsedData.userStats,
                     infoBox: parsedData.infoBox,
                     characterThoughts: parsedData.characterThoughts
                 };
+                lastMessage.extra.rpg_companion_swipes[currentSwipeId] = swipeEntry;
+
+                // Mirror to swipe_info so this swipe survives page reload even if never manually edited
+                mirrorToSwipeInfo(lastMessage, currentSwipeId, swipeEntry);
 
                 // console.log('[RPG Companion] Stored separate mode RPG data for message swipe', currentSwipeId);
             }

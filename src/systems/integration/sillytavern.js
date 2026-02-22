@@ -22,7 +22,7 @@ import {
     updateCommittedTrackerData,
     $musicPlayerContainer
 } from '../../core/state.js';
-import { saveChatData, loadChatData, autoSwitchPresetForEntity, getSwipeData } from '../../core/persistence.js';
+import { saveChatData, loadChatData, autoSwitchPresetForEntity, getSwipeData, commitTrackerDataFromPriorMessage, mirrorToSwipeInfo } from '../../core/persistence.js';
 import { i18n } from '../../core/i18n.js';
 
 // Generation & Parsing
@@ -118,15 +118,12 @@ export function onMessageSent() {
     // The RPG data comes embedded in the main response
     // FAB spinning is handled by apiClient.js for separate/external modes when updateRPGData() is called
 
-    // For separate mode with auto-update disabled, commit displayed tracker
+    // For separate mode with auto-update disabled, commit from the prior assistant message's
+    // swipe store rather than lastGeneratedData to avoid ghost context from sibling swipes.
+    // At this point chat[chat.length - 1] is the user message, so search from before it.
     if (extensionSettings.generationMode === 'separate' && !extensionSettings.autoUpdate) {
-        if (lastGeneratedData.userStats || lastGeneratedData.infoBox || lastGeneratedData.characterThoughts) {
-            committedTrackerData.userStats = lastGeneratedData.userStats;
-            committedTrackerData.infoBox = lastGeneratedData.infoBox;
-            committedTrackerData.characterThoughts = lastGeneratedData.characterThoughts;
-
-            // console.log('[RPG Companion] 💾 SEPARATE MODE: Committed displayed tracker (auto-update disabled)');
-        }
+        commitTrackerDataFromPriorMessage(chat.length - 1);
+        // console.log('[RPG Companion] 💾 SEPARATE MODE: Committed from prior assistant message (auto-update disabled)');
     }
 }
 
@@ -192,11 +189,15 @@ export async function onMessageReceived(data) {
             }
 
             const currentSwipeId = lastMessage.swipe_id || 0;
-            lastMessage.extra.rpg_companion_swipes[currentSwipeId] = {
+            const swipeEntry = {
                 userStats: parsedData.userStats,
                 infoBox: parsedData.infoBox,
                 characterThoughts: parsedData.characterThoughts
             };
+            lastMessage.extra.rpg_companion_swipes[currentSwipeId] = swipeEntry;
+
+            // Mirror to swipe_info so this swipe survives page reload even if never manually edited
+            mirrorToSwipeInfo(lastMessage, currentSwipeId, swipeEntry);
 
             // console.log('[RPG Companion] Stored RPG data for swipe', currentSwipeId);
 
@@ -377,6 +378,9 @@ export function onMessageSwiped(messageIndex) {
         // This is a NEW swipe that will trigger generation
         setLastActionWasSwipe(true);
         setIsAwaitingNewMessage(true);
+        // Immediately commit context from the prior assistant message (N-1) so generation
+        // uses the world state before this message, not the last-viewed sibling swipe.
+        commitTrackerDataFromPriorMessage(messageIndex);
         // console.log('[RPG Companion] 🔵 NEW swipe detected - Set lastActionWasSwipe = true');
     } else {
         // This is navigating to an EXISTING swipe - don't change the flag
