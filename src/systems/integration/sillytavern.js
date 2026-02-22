@@ -20,7 +20,9 @@ import {
     setIsAwaitingNewMessage,
     updateLastGeneratedData,
     updateCommittedTrackerData,
-    $musicPlayerContainer
+    $musicPlayerContainer,
+    getSeparateGenerationId,
+    incrementSeparateGenerationId
 } from '../../core/state.js';
 import { saveChatData, loadChatData, autoSwitchPresetForEntity, getSwipeData, commitTrackerDataFromPriorMessage, mirrorToSwipeInfo } from '../../core/persistence.js';
 import { i18n } from '../../core/i18n.js';
@@ -266,8 +268,13 @@ export async function onMessageReceived(data) {
         // Trigger auto-update if enabled (for both separate and external modes)
         // Only trigger if this is a newly generated message, not loading chat history
         if (extensionSettings.autoUpdate && isAwaitingNewMessage) {
+            // Capture the current generation ID before the async gap so that any
+            // message deletion (or a newer generation) that increments the counter
+            // while the 500ms timer or the API call is in-flight will cause
+            // updateRPGData to discard its result rather than stomping the UI.
+            const genId = incrementSeparateGenerationId();
             setTimeout(async () => {
-                await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory);
+                await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory, genId);
                 // Update FAB widgets and strip widgets after separate/external mode update completes
                 setFabLoadingState(false);
                 updateFabWidgets();
@@ -438,6 +445,10 @@ export function onMessageDeleted() {
     if (!extensionSettings.enabled) return;
 
     // console.log('[RPG Companion] 🗑️ EVENT: onMessageDeleted');
+
+    // Invalidate any pending or in-flight separate-mode generation so
+    // its result is not applied to the (now-changed) chat tail.
+    incrementSeparateGenerationId();
 
     const currentChat = getContext().chat;
 

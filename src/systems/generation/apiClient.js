@@ -18,7 +18,8 @@ import {
     lastActionWasSwipe,
     setIsGenerating,
     setLastActionWasSwipe,
-    $musicPlayerContainer
+    $musicPlayerContainer,
+    getSeparateGenerationId
 } from '../../core/state.js';
 import { saveChatData, mirrorToSwipeInfo } from '../../core/persistence.js';
 import {
@@ -218,7 +219,7 @@ export async function switchToPreset(presetName) {
  * @param {Function} renderThoughts - UI function to render character thoughts
  * @param {Function} renderInventory - UI function to render inventory
  */
-export async function updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory) {
+export async function updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory, generationId = null) {
     if (isGenerating) {
         // console.log('[RPG Companion] Already generating, skipping...');
         return;
@@ -260,6 +261,14 @@ export async function updateRPGData(renderUserStats, renderInfoBox, renderThough
                 prompt: prompt,
                 quietToLoud: false
             });
+        }
+
+        // If a generationId was provided and the counter has since been incremented
+        // (by a deletion or a newer generation), discard this result entirely.
+        // The finally block still runs to restore button state.
+        if (generationId !== null && getSeparateGenerationId() !== generationId) {
+            // console.log('[RPG Companion] ⚠️ Separate generation result discarded — superseded (genId', generationId, '!= current', getSeparateGenerationId(), ')');
+            return;
         }
 
         if (response) {
