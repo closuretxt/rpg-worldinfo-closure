@@ -247,16 +247,49 @@ export function updateMessageSwipeData() {
             }
 
             const swipeId = message.swipe_id || 0;
-            message.extra.rpg_companion_swipes[swipeId] = {
+            const swipeEntry = {
                 userStats: lastGeneratedData.userStats,
                 infoBox: lastGeneratedData.infoBox,
                 characterThoughts: lastGeneratedData.characterThoughts
             };
+            message.extra.rpg_companion_swipes[swipeId] = swipeEntry;
+
+            // Mirror to swipe_info so data survives page reloads regardless of active swipe
+            if (message.swipe_info && message.swipe_info[swipeId]) {
+                if (!message.swipe_info[swipeId].extra) {
+                    message.swipe_info[swipeId].extra = {};
+                }
+                if (!message.swipe_info[swipeId].extra.rpg_companion_swipes) {
+                    message.swipe_info[swipeId].extra.rpg_companion_swipes = {};
+                }
+                message.swipe_info[swipeId].extra.rpg_companion_swipes[swipeId] = swipeEntry;
+            }
 
             // console.log('[RPG Companion] Updated message swipe data after user edit');
             break;
         }
     }
+}
+
+/**
+ * Reads RPG tracker data for a specific swipe from a message.
+ * Checks message.extra first (in-memory, current session), then message.swipe_info
+ * (serialized by SillyTavern on save, available after page reload).
+ *
+ * @param {Object} message - The chat message object
+ * @param {number} swipeId - The swipe index to read
+ * @returns {{userStats, infoBox, characterThoughts}|null} The swipe data or null
+ */
+export function getSwipeData(message, swipeId) {
+    // Primary: in-memory extra (current session or after a recent write)
+    const fromExtra = message.extra?.rpg_companion_swipes?.[swipeId];
+    if (fromExtra) return fromExtra;
+
+    // Fallback: swipe_info (populated by ST when loading from disk)
+    const fromSwipeInfo = message.swipe_info?.[swipeId]?.extra?.rpg_companion_swipes?.[swipeId];
+    if (fromSwipeInfo) return fromSwipeInfo;
+
+    return null;
 }
 
 /**

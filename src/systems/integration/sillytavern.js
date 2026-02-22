@@ -22,7 +22,7 @@ import {
     updateCommittedTrackerData,
     $musicPlayerContainer
 } from '../../core/state.js';
-import { saveChatData, loadChatData, autoSwitchPresetForEntity } from '../../core/persistence.js';
+import { saveChatData, loadChatData, autoSwitchPresetForEntity, getSwipeData } from '../../core/persistence.js';
 import { i18n } from '../../core/i18n.js';
 
 // Generation & Parsing
@@ -67,20 +67,19 @@ export function commitTrackerData() {
         const message = chat[i];
         if (!message.is_user) {
             // Found last assistant message - commit its tracker data
-            if (message.extra && message.extra.rpg_companion_swipes) {
-                const swipeId = message.swipe_id || 0;
-                const swipeData = message.extra.rpg_companion_swipes[swipeId];
+            const swipeId = message.swipe_id || 0;
+            const swipeData = getSwipeData(message, swipeId);
 
-                if (swipeData) {
-                    // console.log('[RPG Companion] Committing tracker data from assistant message at index', i, 'swipe', swipeId);
-                    committedTrackerData.userStats = swipeData.userStats || null;
-                    committedTrackerData.infoBox = swipeData.infoBox || null;
-                    committedTrackerData.characterThoughts = swipeData.characterThoughts || null;
-                } else {
-                    // console.log('[RPG Companion] No swipe data found for swipe', swipeId);
-                }
+            if (swipeData) {
+                // console.log('[RPG Companion] Committing tracker data from assistant message at index', i, 'swipe', swipeId);
+                committedTrackerData.userStats = swipeData.userStats || null;
+                committedTrackerData.infoBox = swipeData.infoBox || null;
+                committedTrackerData.characterThoughts = swipeData.characterThoughts || null;
             } else {
-                // console.log('[RPG Companion] No RPG data found in last assistant message');
+                // No saved swipe data — treat as empty (e.g. first message, no prior generation)
+                committedTrackerData.userStats = null;
+                committedTrackerData.infoBox = null;
+                committedTrackerData.characterThoughts = null;
             }
             break;
         }
@@ -386,12 +385,12 @@ export function onMessageSwiped(messageIndex) {
 
     // console.log('[RPG Companion] Loading data for swipe', currentSwipeId);
 
-    // IMPORTANT: onMessageSwiped is for DISPLAY only!
-    // lastGeneratedData is for DISPLAY, committedTrackerData is for GENERATION
-    // It's safe to load swipe data into lastGeneratedData - it won't be committed due to !lastActionWasSwipe check
-    if (message.extra && message.extra.rpg_companion_swipes && message.extra.rpg_companion_swipes[currentSwipeId]) {
-        const swipeData = message.extra.rpg_companion_swipes[currentSwipeId];
-
+    // Load saved swipe data into both display (lastGeneratedData) and extensionSettings.
+    // Safe to call parseUserStats() unconditionally because updateMessageSwipeData() is called
+    // on every manual edit, so the swipe store always reflects the latest user changes before
+    // any navigation can overwrite them.
+    const swipeData = getSwipeData(message, currentSwipeId);
+    if (swipeData) {
         // Load swipe data into lastGeneratedData for display (both modes)
         lastGeneratedData.userStats = swipeData.userStats || null;
         lastGeneratedData.infoBox = swipeData.infoBox || null;
@@ -403,13 +402,12 @@ export function onMessageSwiped(messageIndex) {
             lastGeneratedData.characterThoughts = swipeData.characterThoughts || null;
         }
 
-        // DON'T parse user stats when loading swipe data
-        // This would overwrite manually edited fields (like Conditions) with old swipe data
-        // The lastGeneratedData is loaded for display purposes only
-        // parseUserStats() updates extensionSettings.userStats which should only be modified
-        // by new generations or manual edits, not by swipe navigation
+        // Sync extensionSettings.userStats so stat bars reflect this swipe
+        if (swipeData.userStats) {
+            parseUserStats(swipeData.userStats);
+        }
 
-        // console.log('[RPG Companion] 🔄 Loaded swipe data into lastGeneratedData for display:', currentSwipeId);
+        // console.log('[RPG Companion] 🔄 Loaded swipe data for swipe:', currentSwipeId);
     } else {
         // console.log('[RPG Companion] ℹ️ No stored data for swipe:', currentSwipeId);
     }
