@@ -74,7 +74,7 @@ function syncLastGeneratedDataFromSwipeStore(currentChat) {
             if (swipeData) {
                 lastGeneratedData.userStats = swipeData.userStats || null;
                 lastGeneratedData.infoBox = swipeData.infoBox || null;
-                // Normalise characterThoughts to string (backward compat with old object format).
+                // Normalize characterThoughts to string (backward compat with old object format).
                 if (swipeData.characterThoughts && typeof swipeData.characterThoughts === 'object') {
                     lastGeneratedData.characterThoughts = JSON.stringify(swipeData.characterThoughts, null, 2);
                 } else {
