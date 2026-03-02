@@ -58,14 +58,14 @@ function set_ids_names(list_with_stats, index, value) {
         if (extensionSettings.userStats && Object.prototype.hasOwnProperty.call(extensionSettings.userStats, oldId)) {
             extensionSettings.userStats[newId] = extensionSettings.userStats[oldId];
             delete extensionSettings.userStats[oldId];
-function setIdsNames(listWithStats, index, value) {
-    listWithStats[index].name = value;
-    const ids = listWithStats.toSpliced(index, 1).map(stat => stat.id);
-    const snakeValue = safeToSnake(value);  // new id format
-    if (snakeValue !== value && !ids.includes(snakeValue)) { // check if this id already exists
-        listWithStats[index].id = snakeValue;
+        }
+
+        if (extensionSettings.classicStats && Object.prototype.hasOwnProperty.call(extensionSettings.classicStats, oldId)) {
+            extensionSettings.classicStats[newId] = extensionSettings.classicStats[oldId];
+            delete extensionSettings.classicStats[oldId];
+        }
     }
-    return listWithStats;
+    return list_with_stats;
 }
 
 

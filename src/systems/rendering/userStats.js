@@ -213,7 +213,7 @@ export function renderUserStats() {
 
     if (!lastGeneratedData.userStats && !committedTrackerData.userStats) {
         // Always render to the #rpg-user-stats container (mobile layout just moves it around in DOM)
-        $userStatsContainer.html('<div class="rpg-inventory-empty">No statuses generated yet</div>');
+        $userStatsContainer.html('<div class="rpg-inventory-empty" data-i18n-key="warnings.no-statuses">No statuses generated yet</div>');
         return;
     }
 
