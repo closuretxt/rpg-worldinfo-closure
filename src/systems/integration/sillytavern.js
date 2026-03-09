@@ -651,7 +651,7 @@ export function onMessageSwiped(messageIndex) {
     // Re-render the panels
     renderUserStats();
     renderInfoBox();
-    renderThoughts({ useCommittedFallback: !isPendingNewSwipe });
+    renderThoughts();
     renderInventory();
     renderQuests();
     renderMusicPlayer($musicPlayerContainer[0]);
