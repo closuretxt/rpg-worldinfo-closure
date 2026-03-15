@@ -1,5 +1,6 @@
 import { extensionSettings } from '../../core/state.js';
 import { i18n } from '../../core/i18n.js';
+import { getSafeImageSrc } from '../../utils/imageUrls.js';
 import { getExpressionPortraitForCharacter } from '../integration/expressionSync.js';
 import {
     getPresentCharactersTrackerData,
@@ -34,21 +35,50 @@ function ensureAlternatePresentCharactersPanel() {
     return $panel;
 }
 
-function escapeHtml(value) {
-    return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
 function hexToRgba(hex, opacity = 100) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     const a = opacity / 100;
     return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function handlePortraitLoadError() {
+    this.style.opacity = '0.5';
+    $(this).off('error', handlePortraitLoadError);
+}
+
+function createAlternatePresentCharacterCard(character) {
+    const rawPortrait = (extensionSettings.syncExpressionsToPresentCharacters
+        ? getExpressionPortraitForCharacter(character.name)
+        : null) || resolvePresentCharacterPortrait(character.name);
+    const portrait = getSafeImageSrc(rawPortrait);
+    const name = String(character.name || '');
+
+    const $card = $('<div class="rpg-alt-present-character"></div>')
+        .attr('data-character-name', name)
+        .attr('title', name);
+
+    const $portrait = $('<div class="rpg-alt-present-character__portrait"></div>');
+    const $image = $('<img />')
+        .attr({
+            alt: name,
+            loading: 'lazy'
+        })
+        .on('error', handlePortraitLoadError);
+
+    if (portrait) {
+        $image.attr('src', portrait);
+    }
+
+    const $meta = $('<div class="rpg-alt-present-character__meta"></div>');
+    const $name = $('<div class="rpg-alt-present-character__name"></div>').text(name);
+
+    $portrait.append($image);
+    $meta.append($name);
+    $card.append($portrait, $meta);
+
+    return $card;
 }
 
 export function removeAlternatePresentCharactersPanel() {
@@ -120,42 +150,28 @@ export function renderAlternatePresentCharacters({ useCommittedFallback = true }
 
     const title = i18n.getTranslation('template.trackerEditorModal.tabs.presentCharacters') || 'Present Characters';
 
-    let html = `
-        <div class="rpg-alt-present-characters__header">
-            <div class="rpg-alt-present-characters__title">
-                <i class="fa-solid fa-users" aria-hidden="true"></i>
-                <span>${escapeHtml(title)}</span>
-            </div>
-            <div class="rpg-alt-present-characters__count">${presentCharacters.length}</div>
-        </div>
-        <div class="rpg-alt-present-characters__scroll">
-            <div class="rpg-alt-present-characters__track">
-    `;
+    const $panel = ensureAlternatePresentCharactersPanel();
+    const $header = $('<div class="rpg-alt-present-characters__header"></div>');
+    const $headerTitle = $('<div class="rpg-alt-present-characters__title"></div>');
+    const $scroll = $('<div class="rpg-alt-present-characters__scroll"></div>');
+    const $track = $('<div class="rpg-alt-present-characters__track"></div>');
+
+    $headerTitle.append(
+        $('<i class="fa-solid fa-users" aria-hidden="true"></i>'),
+        $('<span></span>').text(title)
+    );
+
+    $header.append(
+        $headerTitle,
+        $('<div class="rpg-alt-present-characters__count"></div>').text(String(presentCharacters.length))
+    );
 
     for (const character of presentCharacters) {
-        const portrait = (extensionSettings.syncExpressionsToPresentCharacters
-            ? getExpressionPortraitForCharacter(character.name)
-            : null) || resolvePresentCharacterPortrait(character.name);
-        const name = escapeHtml(character.name || '');
-
-        html += `
-            <div class="rpg-alt-present-character" data-character-name="${name}" title="${name}">
-                <div class="rpg-alt-present-character__portrait">
-                    <img src="${portrait}" alt="${name}" loading="lazy" onerror="this.style.opacity='0.5';this.onerror=null;" />
-                </div>
-                <div class="rpg-alt-present-character__meta">
-                    <div class="rpg-alt-present-character__name">${name}</div>
-                </div>
-            </div>
-        `;
+        $track.append(createAlternatePresentCharacterCard(character));
     }
 
-    html += `
-            </div>
-        </div>
-    `;
+    $scroll.append($track);
 
-    const $panel = ensureAlternatePresentCharactersPanel();
-    $panel.html(html).show();
+    $panel.empty().append($header, $scroll).show();
     syncAlternatePresentCharactersTheme();
 }

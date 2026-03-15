@@ -15,6 +15,7 @@ import {
     removeSyncedExpressionPortrait
 } from '../../core/state.js';
 import { saveChatData } from '../../core/persistence.js';
+import { isSafeImageSrc, normalizeImageSrc, resolveImageUrl } from '../../utils/imageUrls.js';
 import { renderAlternatePresentCharacters } from '../ui/alternatePresentCharacters.js';
 
 let expressionContainerObserver = null;
@@ -33,20 +34,11 @@ function normalizeName(name) {
 }
 
 function normalizeExpressionSrc(src) {
-    return String(src || '').trim();
+    return normalizeImageSrc(src);
 }
 
 function resolveExpressionUrl(src) {
-    const normalized = normalizeExpressionSrc(src);
-    if (!normalized) {
-        return null;
-    }
-
-    try {
-        return new URL(normalized, window.location.href);
-    } catch {
-        return null;
-    }
+    return resolveImageUrl(src);
 }
 
 function isDocumentLikeUrl(src) {
@@ -73,6 +65,10 @@ function isUsableExpressionSrc(src) {
     }
 
     if (isDocumentLikeUrl(normalized)) {
+        return false;
+    }
+
+    if (!isSafeImageSrc(normalized)) {
         return false;
     }
 
