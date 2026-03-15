@@ -389,6 +389,14 @@ export function setupSettingsPopup() {
                     delete message.extra.rpg_companion_swipes;
                     // console.log('[RPG Companion] Cleared swipe data from message at index', i);
                 }
+
+                if (Array.isArray(message.swipe_info)) {
+                    for (const swipeInfo of message.swipe_info) {
+                        if (swipeInfo?.extra?.rpg_companion_swipes) {
+                            delete swipeInfo.extra.rpg_companion_swipes;
+                        }
+                    }
+                }
             }
         }
 
