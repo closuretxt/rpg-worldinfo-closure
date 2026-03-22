@@ -229,8 +229,10 @@ export function parseResponse(responseText) {
         debugLog(`[RPG Parser] ✓ Found ${extractedObjects.length} raw JSON objects (v3 format)`);
 
         // First, try to parse as unified JSON structure (new v3.1 format)
-        if (extractedObjects.length === 1) {
-            const parsed = repairJSON(extractedObjects[0]);
+        // Look through all extracted objects for unified structure
+        let foundUnified = false;
+        for (let idx = 0; idx < extractedObjects.length; idx++) {
+            const parsed = repairJSON(extractedObjects[idx]);
             if (parsed && (parsed.userStats || parsed.infoBox || parsed.characters)) {
                 // console.log('[RPG Parser] ✓ Detected unified JSON structure (v3.1 format)');
 
@@ -247,13 +249,17 @@ export function parseResponse(responseText) {
                     // console.log('[RPG Parser] ✓ Extracted characters from unified structure');
                 }
 
-                if (result.userStats || result.infoBox || result.characterThoughts) {
-                    // console.log('[RPG Parser] ✓ Returning unified JSON parse results');
-                    debugLog('[RPG Parser] Returning unified JSON parse results');
-                    return result;
-                }
+                foundUnified = true;
+                break; // Found unified structure, stop searching
             }
         }
+
+        if (foundUnified) {
+            // console.log('[RPG Parser] ✓ Returning unified JSON parse results');
+            return result;
+        }
+
+        // If no unified structure found, proceed to multi-object classification
 
         // Fall back to parsing multiple separate JSON objects (legacy v3.0 format)
         for (let idx = 0; idx < extractedObjects.length; idx++) {
@@ -275,6 +281,21 @@ export function parseResponse(responseText) {
                         unwrapped = parsed[key];
                         // console.log(`[RPG Parser] ✓ Unwrapped ${key} object`);
                     }
+                }
+
+                // Check for unified structure format (even if previous detection missed it)
+                // This handles the prompt-requested format: {"userStats": {...}, "infoBox": {...}, "characters": [...]}
+                if (parsed.userStats || parsed.infoBox || parsed.characters) {
+                    if (parsed.userStats) {
+                        result.userStats = JSON.stringify(parsed.userStats);
+                    }
+                    if (parsed.infoBox) {
+                        result.infoBox = JSON.stringify(parsed.infoBox);
+                    }
+                    if (parsed.characters) {
+                        result.characterThoughts = JSON.stringify(parsed.characters);
+                    }
+                    continue; // Skip further classification
                 }
 
                 // Detect tracker type by checking for top-level fields

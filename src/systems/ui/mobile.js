@@ -38,10 +38,23 @@ export function updateMobileTabLabels() {
         }
 
         if (translationKey) {
-            const translation = i18n.getTranslation(translationKey);
-            if (translation) {
-                $tab.find('span').text(translation);
+            let fallback = '';
+            switch (tabName) {
+                case 'stats':
+                    fallback = 'Status';
+                    break;
+                case 'info':
+                    fallback = 'Info';
+                    break;
+                case 'inventory':
+                    fallback = 'Inventory';
+                    break;
+                case 'quests':
+                    fallback = 'Quests';
+                    break;
             }
+            const translation = i18n.getTranslation(translationKey) || fallback;
+            $tab.find('span').text(translation);
         }
     });
 }
@@ -609,19 +622,19 @@ export function setupMobileTabs() {
 
     // Tab 1: Stats (User Stats only)
     if (hasStats) {
-        tabs.push('<button class="rpg-mobile-tab active" data-tab="stats"><i class="fa-solid fa-chart-bar"></i><span>' + i18n.getTranslation('global.status') + '</span></button>');
+        tabs.push('<button class="rpg-mobile-tab active" data-tab="stats"><i class="fa-solid fa-chart-bar"></i><span>' + (i18n.getTranslation('global.status') || 'Status') + '</span></button>');
     }
     // Tab 2: Info (Info Box + Character Thoughts)
     if (hasInfo) {
-        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="info"><i class="fa-solid fa-book"></i><span>' + i18n.getTranslation('global.info') + '</span></button>');
+        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="info"><i class="fa-solid fa-book"></i><span>' + (i18n.getTranslation('global.info') || 'Info') + '</span></button>');
     }
     // Tab 3: Inventory
     if (hasInventory) {
-        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="inventory"><i class="fa-solid fa-box"></i><span>' + i18n.getTranslation('global.inventory') + '</span></button>');
+        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="inventory"><i class="fa-solid fa-box"></i><span>' + (i18n.getTranslation('global.inventory') || 'Inventory') + '</span></button>');
     }
     // Tab 4: Quests
     if (hasQuests) {
-        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="quests"><i class="fa-solid fa-scroll"></i><span>' + i18n.getTranslation('global.quests') + '</span></button>');
+        tabs.push('<button class="rpg-mobile-tab ' + (tabs.length === 0 ? 'active' : '') + '" data-tab="quests"><i class="fa-solid fa-scroll"></i><span>' + (i18n.getTranslation('global.quests') || 'Quests') + '</span></button>');
     }
 
     const $tabNav = $('<div class="rpg-mobile-tabs">' + tabs.join('') + '</div>');

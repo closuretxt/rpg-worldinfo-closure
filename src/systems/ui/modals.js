@@ -323,7 +323,7 @@ export function setupDiceRoller() {
         e.stopPropagation(); // Prevent opening the dice popup
         clearDiceRollCore();
     });
-    $('#rpg-clear-dice').attr('title', i18n.getTranslation('template.mainPanel.clearLastRoll'));
+    $('#rpg-clear-dice').attr('title', i18n.getTranslation('template.mainPanel.clearLastRoll') || 'Clear last roll');
 
     return diceModal;
 }

@@ -225,7 +225,7 @@ function updatePresetUI() {
     // Update the default button appearance
     const $defaultBtn = $('#rpg-preset-default');
     if (isDefaultPreset(activePresetId)) {
-        $defaultBtn.addClass('rpg-btn-active').attr('title', 'This is the default preset');
+        $defaultBtn.addClass('rpg-btn-active').attr('title', i18n.getTranslation('preset.defaultPresetDescription') || 'This is the default preset');
     } else {
         $defaultBtn.removeClass('rpg-btn-active').attr('title', 'Set as Default Preset');
     }
@@ -334,18 +334,18 @@ function resetToDefaults() {
     extensionSettings.trackerConfig = {
         userStats: {
             customStats: [
-                { id: 'health', name: i18n.getTranslation('stats.health'), enabled: true, persistInHistory: false },
-                { id: 'satiety', name: i18n.getTranslation('stats.satiety'), enabled: true, persistInHistory: false },
-                { id: 'energy', name: i18n.getTranslation('stats.energy'), enabled: true, persistInHistory: false },
-                { id: 'hygiene', name: i18n.getTranslation('stats.hygiene'), enabled: true, persistInHistory: false },
-                { id: 'arousal', name: i18n.getTranslation('stats.arousal'), enabled: true, persistInHistory: false }
+                { id: 'health', name: i18n.getTranslation('stats.health') || 'Health', enabled: true, persistInHistory: false },
+                { id: 'satiety', name: i18n.getTranslation('stats.satiety') || 'Satiety', enabled: true, persistInHistory: false },
+                { id: 'energy', name: i18n.getTranslation('stats.energy') || 'Energy', enabled: true, persistInHistory: false },
+                { id: 'hygiene', name: i18n.getTranslation('stats.hygiene') || 'Hygiene', enabled: true, persistInHistory: false },
+                { id: 'arousal', name: i18n.getTranslation('stats.arousal') || 'Arousal', enabled: true, persistInHistory: false }
             ],
             showRPGAttributes: true,
             rpgAttributes: [
-                { id: 'str', name: i18n.getTranslation('stats.str'), enabled: true, persistInHistory: false },
-                { id: 'dex', name: i18n.getTranslation('stats.dex'), enabled: true, persistInHistory: false },
-                { id: 'con', name: i18n.getTranslation('stats.con'), enabled: true, persistInHistory: false },
-                { id: 'int', name: i18n.getTranslation('stats.int'), enabled: true, persistInHistory: false },
+                { id: 'str', name: i18n.getTranslation('stats.str') || 'STR', enabled: true, persistInHistory: false },
+                { id: 'dex', name: i18n.getTranslation('stats.dex') || 'DEX', enabled: true, persistInHistory: false },
+                { id: 'con', name: i18n.getTranslation('stats.con') || 'CON', enabled: true, persistInHistory: false },
+                { id: 'int', name: i18n.getTranslation('stats.int') || 'INT', enabled: true, persistInHistory: false },
                 { id: 'wis', name: i18n.getTranslation('stats.wis'), enabled: true, persistInHistory: false },
                 { id: 'cha', name: i18n.getTranslation('stats.cha'), enabled: true, persistInHistory: false }
             ],
@@ -635,7 +635,7 @@ function showImportModeDialog(migratedConfig, suggestedName, historyPersistence 
                     </button>
                     <button id="rpg-import-as-new" class="rpg-btn-primary">
                         <i class="fa-solid fa-plus"></i>
-                        Create New Preset
+                        ${i18n.getTranslation('preset.createNewPresetTitle') || 'Create New Preset'}
                     </button>
                 </div>
                 <button id="rpg-import-cancel" class="rpg-btn-cancel">Cancel</button>
@@ -728,15 +728,15 @@ function renderUserStatsTab() {
     let html = '<div class="rpg-editor-section">';
 
     // Custom Stats section
-    html += `<h4><i class="fa-solid fa-heart-pulse"></i> ${i18n.getTranslation('template.trackerEditorModal.userStatsTab.customStatsTitle')}</h4>`;
+    html += `<h4><i class="fa-solid fa-heart-pulse"></i> ${i18n.getTranslation('template.trackerEditorModal.userStatsTab.customStatsTitle') || 'Custom Stats'}</h4>`;
 
     // Stats display mode toggle
     const statsDisplayMode = config.statsDisplayMode || 'percentage';
     html += '<div class="rpg-editor-toggle-row">';
-    html += '<label>Display Mode:</label>';
+    html += '<label>' + (i18n.getTranslation('stats.displayMode') || 'Display Mode:') + '</label>';
     html += '<div class="rpg-radio-group">';
-    html += `<label><input type="radio" name="stats-display-mode" value="percentage" ${statsDisplayMode === 'percentage' ? 'checked' : ''}> Percentage</label>`;
-    html += `<label><input type="radio" name="stats-display-mode" value="number" ${statsDisplayMode === 'number' ? 'checked' : ''}> Number</label>`;
+    html += `<label><input type="radio" name="stats-display-mode" value="percentage" ${statsDisplayMode === 'percentage' ? 'checked' : ''}> ${i18n.getTranslation('stats.displayMode.percentage') || 'Percentage'}</label>`;
+    html += `<label><input type="radio" name="stats-display-mode" value="number" ${statsDisplayMode === 'number' ? 'checked' : ''}> ${i18n.getTranslation('stats.displayMode.number') || 'Number'}</label>`;
     html += '</div>';
     html += '</div>';
 
@@ -772,7 +772,7 @@ function renderUserStatsTab() {
     const showLevel = config.showLevel !== undefined ? config.showLevel : true;
     html += '<div class="rpg-editor-toggle-row">';
     html += `<input type="checkbox" id="rpg-show-level" ${showLevel ? 'checked' : ''}>`;
-    html += `<label for="rpg-show-level">Show Level</label>`;
+    html += `<label for="rpg-show-level">${i18n.getTranslation('stats.showLevel') || 'Show Level'}</label>`;
     html += '</div>';
 
     // Always send attributes toggle
@@ -1006,8 +1006,8 @@ function renderInfoBoxTab() {
     html += `<input type="checkbox" id="rpg-widget-date" ${config.widgets.date.enabled ? 'checked' : ''}>`;
     html += `<label for="rpg-widget-date">${i18n.getTranslation('template.trackerEditorModal.infoBoxTab.dateWidget')}</label>`;
     html += '<select id="rpg-date-format" class="rpg-select-mini">';
-    html += `<option value="Weekday, Month, Year" ${config.widgets.date.format === 'Weekday, Month, Year' ? 'selected' : ''}>Weekday, Month, Year</option>`;
-    html += `<option value="Day (Numerical), Month, Year" ${config.widgets.date.format === 'Day (Numerical), Month, Year' ? 'selected' : ''}>Day (Numerical), Month, Year</option>`;
+    html += `<option value="Weekday, Month, Year" ${config.widgets.date.format === 'Weekday, Month, Year' ? 'selected' : ''}>${i18n.getTranslation('dateFormat.weekdayMonthYear') || 'Weekday, Month, Year'}</option>`;
+    html += `<option value="Day (Numerical), Month, Year" ${config.widgets.date.format === 'Day (Numerical), Month, Year' ? 'selected' : ''}>${i18n.getTranslation('dateFormat.dayNumericalMonthYear') || 'Day (Numerical), Month, Year'}</option>`;
     html += '</select>';
     html += '</div>';
 
@@ -1467,48 +1467,48 @@ function renderHistoryPersistenceTab() {
     let html = '<div class="rpg-editor-section">';
 
     // Main toggle and settings
-    html += `<h4><i class="fa-solid fa-clock-rotate-left"></i> History Persistence Settings</h4>`;
-    html += `<p class="rpg-editor-hint">Inject selected tracker data into historical messages to help the AI maintain continuity for time-sensitive events, weather changes, and location tracking.</p>`;
+    html += `<h4><i class="fa-solid fa-clock-rotate-left"></i> ${i18n.getTranslation('historyPersistence.settingsTitle') || 'History Persistence Settings'}</h4>`;
+    html += `<p class="rpg-editor-hint">${i18n.getTranslation('historyPersistence.hint') || 'Inject selected tracker data into historical messages to help the AI maintain continuity for time-sensitive events, weather changes, and location tracking.'}</p>`;
 
     // Enable toggle
     html += '<div class="rpg-editor-toggle-row">';
     html += `<input type="checkbox" id="rpg-history-persistence-enabled" ${historyPersistence.enabled ? 'checked' : ''}>`;
-    html += `<label for="rpg-history-persistence-enabled">Enable History Persistence</label>`;
+    html += `<label for="rpg-history-persistence-enabled">${i18n.getTranslation('historyPersistence.enable') || 'Enable History Persistence'}</label>`;
     html += '</div>';
 
     // External API Only toggle - only show for separate/external modes
     if (generationMode === 'separate' || generationMode === 'external') {
         html += '<div class="rpg-editor-toggle-row" style="margin-top: 8px;">';
         html += `<input type="checkbox" id="rpg-history-send-all-enabled" ${historyPersistence.sendAllEnabledOnRefresh ? 'checked' : ''}>`;
-        html += `<label for="rpg-history-send-all-enabled">Send All Enabled Stats on Refresh</label>`;
+        html += `<label for="rpg-history-send-all-enabled">${i18n.getTranslation('historyPersistence.sendAllEnabledStats') || 'Send All Enabled Stats on Refresh'}</label>`;
         html += '</div>';
-        html += `<p class="rpg-editor-hint" style="margin-top: 4px; margin-left: 24px;">When enabled, Refresh RPG Info will include all enabled stats from the preset in history context, ignoring the individual selections below.</p>`;
+        html += `<p class="rpg-editor-hint" style="margin-top: 4px; margin-left: 24px;">${i18n.getTranslation('historyPersistence.sendAllEnabledStatsHint') || 'When enabled, Refresh RPG Info will include all enabled stats from the preset in history context, ignoring the individual selections below.'}</p>`;
     }
 
     // Message count
     html += '<div class="rpg-editor-input-row" style="margin-top: 12px;">';
-    html += `<label for="rpg-history-message-count">Number of messages to include (0 = all available):</label>`;
+    html += `<label for="rpg-history-message-count">${i18n.getTranslation('historyPersistence.numberOfMessages') || 'Number of messages to include (0 = all available):'}</label>`;
     html += `<input type="number" id="rpg-history-message-count" min="0" max="50" value="${historyPersistence.messageCount}" class="rpg-input" style="width: 80px; margin-left: 8px;">`;
     html += '</div>';
 
     // Injection position
     html += '<div class="rpg-editor-input-row" style="margin-top: 12px;">';
-    html += `<label for="rpg-history-injection-position">Injection Position:</label>`;
+    html += `<label for="rpg-history-injection-position">${i18n.getTranslation('historyPersistence.injectionPosition') || 'Injection Position:'}</label>`;
     html += `<select id="rpg-history-injection-position" class="rpg-select" style="margin-left: 8px;">`;
-    html += `<option value="user_message_end" ${historyPersistence.injectionPosition === 'user_message_end' ? 'selected' : ''}>End of the User's Message</option>`;
-    html += `<option value="assistant_message_end" ${historyPersistence.injectionPosition === 'assistant_message_end' ? 'selected' : ''}>End of the Assistant's Message</option>`;
+    html += `<option value="user_message_end" ${historyPersistence.injectionPosition === 'user_message_end' ? 'selected' : ''}>${i18n.getTranslation('historyPersistence.injectionPosition.userMessageEnd') || 'End of the User\'s Message'}</option>`;
+    html += `<option value="assistant_message_end" ${historyPersistence.injectionPosition === 'assistant_message_end' ? 'selected' : ''}>${i18n.getTranslation('historyPersistence.injectionPosition.assistantMessageEnd') || 'End of the Assistant\'s Message'}</option>`;
     html += `</select>`;
     html += '</div>';
 
     // Custom preamble
     html += '<div class="rpg-editor-input-row" style="margin-top: 12px;">';
-    html += `<label for="rpg-history-context-preamble">Custom Context Preamble:</label>`;
-    html += `<input type="text" id="rpg-history-context-preamble" value="${historyPersistence.contextPreamble || ''}" class="rpg-text-input" placeholder="Context for that moment:" style="width: 100%; margin-top: 4px;">`;
+    html += `<label for="rpg-history-context-preamble">${i18n.getTranslation('historyPersistence.customContextPreamble') || 'Custom Context Preamble:'}</label>`;
+    html += `<input type="text" id="rpg-history-context-preamble" value="${historyPersistence.contextPreamble || ''}" class="rpg-text-input" placeholder="${i18n.getTranslation('historyPersistence.customContextPreamblePlaceholder') || 'Context for that moment:'}" style="width: 100%; margin-top: 4px;">`;
     html += '</div>';
 
     // User Stats section - which stats to persist
-    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-heart-pulse"></i> User Stats</h4>`;
-    html += `<p class="rpg-editor-hint">Select which stats should be included in historical messages.</p>`;
+    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-heart-pulse"></i> ${i18n.getTranslation('historyPersistence.userStatsSection') || 'User Stats'}</h4>`;
+    html += `<p class="rpg-editor-hint">${i18n.getTranslation('historyPersistence.userStatsHint') || 'Select which stats should be included in historical messages.'}</p>`;
 
     // Custom stats
     html += '<div class="rpg-history-persist-list">';
@@ -1528,7 +1528,7 @@ function renderHistoryPersistenceTab() {
         html += `
             <div class="rpg-editor-toggle-row">
                 <input type="checkbox" id="rpg-history-status" ${userStatsConfig.statusSection.persistInHistory ? 'checked' : ''}>
-                <label for="rpg-history-status">Status (Mood/Conditions)</label>
+                <label for="rpg-history-status">${i18n.getTranslation('historyPersistence.statusSection') || 'Status (Mood/Conditions)'}</label>
             </div>
         `;
     }
@@ -1538,7 +1538,7 @@ function renderHistoryPersistenceTab() {
         html += `
             <div class="rpg-editor-toggle-row">
                 <input type="checkbox" id="rpg-history-skills" ${userStatsConfig.skillsSection.persistInHistory ? 'checked' : ''}>
-                <label for="rpg-history-skills">${userStatsConfig.skillsSection.label || 'Skills'}</label>
+                <label for="rpg-history-skills">${userStatsConfig.skillsSection.label || i18n.getTranslation('historyPersistence.skills') || 'Skills'}</label>
             </div>
         `;
     }
@@ -1547,7 +1547,7 @@ function renderHistoryPersistenceTab() {
     html += `
         <div class="rpg-editor-toggle-row">
             <input type="checkbox" id="rpg-history-inventory" ${userStatsConfig.inventoryPersistInHistory ? 'checked' : ''}>
-            <label for="rpg-history-inventory">Inventory</label>
+            <label for="rpg-history-inventory">${i18n.getTranslation('historyPersistence.inventory') || 'Inventory'}</label>
         </div>
     `;
 
@@ -1555,14 +1555,14 @@ function renderHistoryPersistenceTab() {
     html += `
         <div class="rpg-editor-toggle-row">
             <input type="checkbox" id="rpg-history-quests" ${userStatsConfig.questsPersistInHistory ? 'checked' : ''}>
-            <label for="rpg-history-quests">Quests</label>
+            <label for="rpg-history-quests">${i18n.getTranslation('historyPersistence.quests') || 'Quests'}</label>
         </div>
     `;
     html += '</div>';
 
     // Info Box section - which widgets to persist
-    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-info-circle"></i> Info Box</h4>`;
-    html += `<p class="rpg-editor-hint">Select which info box fields should be included in historical messages. These are recommended for time tracking.</p>`;
+    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-info-circle"></i> ${i18n.getTranslation('historyPersistence.infoBoxSection') || 'Info Box'}</h4>`;
+    html += `<p class="rpg-editor-hint">${i18n.getTranslation('historyPersistence.infoBoxHint') || 'Select which info box fields should be included in historical messages. These are recommended for time tracking.'}</p>`;
 
     html += '<div class="rpg-history-persist-list">';
     const widgetLabels = {
@@ -1579,7 +1579,7 @@ function renderHistoryPersistenceTab() {
             html += `
                 <div class="rpg-editor-toggle-row">
                     <input type="checkbox" id="rpg-history-widget-${widgetId}" class="rpg-history-widget-toggle" data-widget="${widgetId}" ${widget.persistInHistory ? 'checked' : ''}>
-                    <label for="rpg-history-widget-${widgetId}">${widgetLabels[widgetId] || widgetId}</label>
+                    <label for="rpg-history-widget-${widgetId}">${i18n.getTranslation('historyPersistence.widget.' + widgetId) || widgetLabels[widgetId] || widgetId}</label>
                 </div>
             `;
         }
@@ -1587,8 +1587,8 @@ function renderHistoryPersistenceTab() {
     html += '</div>';
 
     // Present Characters section
-    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-users"></i> Present Characters</h4>`;
-    html += `<p class="rpg-editor-hint">Select which character fields should be included in historical messages.</p>`;
+    html += `<h4 style="margin-top: 20px;"><i class="fa-solid fa-users"></i> ${i18n.getTranslation('historyPersistence.presentCharactersSection') || 'Present Characters'}</h4>`;
+    html += `<p class="rpg-editor-hint">${i18n.getTranslation('historyPersistence.presentCharactersHint') || 'Select which character fields should be included in historical messages.'}</p>`;
 
     html += '<div class="rpg-history-persist-list">';
 
@@ -1609,7 +1609,7 @@ function renderHistoryPersistenceTab() {
         html += `
             <div class="rpg-editor-toggle-row">
                 <input type="checkbox" id="rpg-history-thoughts" ${presentCharsConfig.thoughts.persistInHistory ? 'checked' : ''}>
-                <label for="rpg-history-thoughts">${presentCharsConfig.thoughts.name || 'Thoughts'}</label>
+                <label for="rpg-history-thoughts">${presentCharsConfig.thoughts.name || i18n.getTranslation('historyPersistence.thoughts') || 'Thoughts'}</label>
             </div>
         `;
     }

@@ -268,7 +268,7 @@ export async function updateRPGData(renderUserStats, renderInfoBox, renderThough
 
             // Check if parsing completely failed (no tracker data found)
             if (parsedData.parsingFailed) {
-                toastr.error(i18n.getTranslation('errors.parsingError'), '', { timeOut: 5000 });
+                toastr.error(i18n.getTranslation('errors.parsingError') || 'RPG Companion Trackers parsing error! The model returned incorrect format. Consider switching generation model if this persists.', '', { timeOut: 5000 });
             }
 
             // Remove locks from parsed data (JSON format only, text format is unaffected)

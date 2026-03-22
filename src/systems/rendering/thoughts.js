@@ -31,7 +31,7 @@ function getLockIconHtml(tracker, path) {
 
     const isLocked = isItemLocked(tracker, path);
     const lockIcon = isLocked ? '🔒' : '🔓';
-    const lockTitle = isLocked ? i18n.getTranslation('thoughts.locked') : i18n.getTranslation('thoughts.unlocked');
+    const lockTitle = isLocked ? i18n.getTranslation('thoughts.locked') || 'Locked' : i18n.getTranslation('thoughts.unlocked') || 'Unlocked';
     const lockedClass = isLocked ? ' locked' : '';
     return `<span class="rpg-section-lock-icon${lockedClass}" data-tracker="${tracker}" data-path="${path}" title="${lockTitle}">${lockIcon}</span>`;
 }
@@ -171,7 +171,7 @@ export function renderThoughts({ preserveScroll = false } = {}) {
     // Don't render if no data exists (e.g., after cache clear)
     const thoughtsData = lastGeneratedData.characterThoughts || committedTrackerData.characterThoughts;
     if (!thoughtsData) {
-        $thoughtsContainer.html('<div class="rpg-inventory-empty">No character data generated yet</div>');
+        $thoughtsContainer.html('<div class="rpg-inventory-empty">' + (i18n.getTranslation('thoughts.empty') || 'No character data generated yet') + '</div>');
         return;
     }
 
@@ -503,14 +503,14 @@ export function renderThoughts({ preserveScroll = false } = {}) {
                 html += `
                     <div class="rpg-character-card" data-character-name="${char.name}">
                         <div class="rpg-character-header-row">
-                            <div class="rpg-character-avatar rpg-avatar-upload" data-character="${char.name}" title="${i18n.getTranslation('thoughts.clickToUpload')}">
+                            <div class="rpg-character-avatar rpg-avatar-upload" data-character="${char.name}" title="${i18n.getTranslation('thoughts.clickToUpload') || 'Click to upload avatar'}">
                                 <img src="${characterPortrait}" alt="${char.name}" onerror="this.style.opacity='0.5';this.onerror=null;" />
-                                ${hasRelationshipEnabled ? `<div class="rpg-relationship-badge rpg-editable" contenteditable="true" data-character="${char.name}" data-field="${relationshipFieldName}" title="${i18n.getTranslation('thoughts.clickToEdit')} (emoji: ⚔️ ⚖️ ⭐ ❤️)">${relationshipBadge}</div>` : ''}
+                                ${hasRelationshipEnabled ? `<div class="rpg-relationship-badge rpg-editable" contenteditable="true" data-character="${char.name}" data-field="${relationshipFieldName}" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'} (emoji: ⚔️ ⚖️ ⭐ ❤️)">${relationshipBadge}</div>` : ''}
                             </div>
                             <div class="rpg-character-header">
-                                <span class="rpg-character-emoji rpg-editable" contenteditable="true" data-character="${char.name}" data-field="emoji" title="${i18n.getTranslation('thoughts.clickToEdit')}">${char.emoji}</span>
-                                <span class="rpg-character-name rpg-editable" contenteditable="true" data-character="${char.name}" data-field="name" title="${i18n.getTranslation('thoughts.clickToEdit')}">${char.name}</span>
-                                <button class="rpg-character-remove" data-character="${char.name}" title="${i18n.getTranslation('thoughts.removeCharacter')}">×</button>
+                                <span class="rpg-character-emoji rpg-editable" contenteditable="true" data-character="${char.name}" data-field="emoji" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'}">${char.emoji}</span>
+                                <span class="rpg-character-name rpg-editable" contenteditable="true" data-character="${char.name}" data-field="name" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'}">${char.name}</span>
+                                <button class="rpg-character-remove" data-character="${char.name}" title="${i18n.getTranslation('thoughts.removeCharacter') || 'Remove character'}">×</button>
                             </div>
                         </div>
                         <div class="rpg-character-content">
@@ -533,12 +533,12 @@ export function renderThoughts({ preserveScroll = false } = {}) {
                         html += `
                                 <div class="rpg-character-field rpg-character-${fieldId}" style="position: relative;">
                                     ${lockIconHtml}
-                                    <span class="rpg-editable${emptyClass}" contenteditable="true" data-character="${char.name}" data-field="${field.name}" title="${i18n.getTranslation('thoughts.clickToEdit')}" ${placeholder}>${fieldValue}</span>
+                                    <span class="rpg-editable${emptyClass}" contenteditable="true" data-character="${char.name}" data-field="${field.name}" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'}" ${placeholder}>${fieldValue}</span>
                                 </div>
                         `;
                     } else {
                         html += `
-                                <div class="rpg-character-field rpg-character-${fieldId} rpg-editable${emptyClass}" contenteditable="true" data-character="${char.name}" data-field="${field.name}" title="${i18n.getTranslation('thoughts.clickToEdit')}" ${placeholder}>${fieldValue}</div>
+                                <div class="rpg-character-field rpg-character-${fieldId} rpg-editable${emptyClass}" contenteditable="true" data-character="${char.name}" data-field="${field.name}" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'}" ${placeholder}>${fieldValue}</div>
                         `;
                     }
                 }
@@ -564,7 +564,7 @@ export function renderThoughts({ preserveScroll = false } = {}) {
                         );
                         html += `
                                 <div class="rpg-character-stat">
-                                    <span class="rpg-stat-name">${stat.name}: </span><span class="rpg-editable" contenteditable="true" data-character="${char.name}" data-field="${stat.name}" style="color: ${statColor}" title="${i18n.getTranslation('thoughts.clickToEdit')}">${statValue}%</span>
+                                    <span class="rpg-stat-name">${stat.name}: </span><span class="rpg-editable" contenteditable="true" data-character="${char.name}" data-field="${stat.name}" style="color: ${statColor}" title="${i18n.getTranslation('thoughts.clickToEdit') || 'Click to edit'}">${statValue}%</span>
                                 </div>
                         `;
                     }
@@ -590,8 +590,8 @@ export function renderThoughts({ preserveScroll = false } = {}) {
         // Add "Add Character" button if data exists (inside rpg-thoughts-content)
         if (presentCharacters.length > 0) {
             html += `
-                <button class="rpg-add-character-btn" title="${i18n.getTranslation('thoughts.addCharacter')}">
-                    <i class="fa-solid fa-plus"></i> ${i18n.getTranslation('thoughts.addCharacter')}
+                <button class="rpg-add-character-btn" title="${i18n.getTranslation('thoughts.addCharacter') || 'Add character'}">
+                    <i class="fa-solid fa-plus"></i> ${i18n.getTranslation('thoughts.addCharacter') || 'Add character'}
                 </button>
             `;
         }
@@ -1425,7 +1425,7 @@ function renderThoughtsSidebarOnly() {
     // Copy the rendering logic from renderThoughts but skip the updateChatThoughts call
     const thoughtsData = lastGeneratedData.characterThoughts || committedTrackerData.characterThoughts;
     if (!thoughtsData) {
-        $thoughtsContainer.html('<div class="rpg-inventory-empty">No character data generated yet</div>');
+        $thoughtsContainer.html('<div class="rpg-inventory-empty">' + (i18n.getTranslation('thoughts.empty') || 'No character data generated yet') + '</div>');
         return;
     }
 
