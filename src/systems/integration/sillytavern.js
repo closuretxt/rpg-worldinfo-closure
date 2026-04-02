@@ -20,9 +20,10 @@ import {
     setIsAwaitingNewMessage,
     updateLastGeneratedData,
     updateCommittedTrackerData,
-    $musicPlayerContainer
+    $musicPlayerContainer,
+    incrementSeparateGenerationId
 } from '../../core/state.js';
-import { saveChatData, loadChatData, autoSwitchPresetForEntity } from '../../core/persistence.js';
+import { saveChatData, loadChatData, autoSwitchPresetForEntity, getSwipeData, commitTrackerDataFromPriorMessage, inheritSwipeDataFromPriorMessage, mirrorToSwipeInfo } from '../../core/persistence.js';
 import { i18n } from '../../core/i18n.js';
 
 // Generation & Parsing
@@ -52,6 +53,45 @@ import { updateAllCheckpointIndicators } from '../ui/checkpointUI.js';
 import { restoreCheckpointOnLoad } from '../features/chapterCheckpoint.js';
 
 /**
+ * Reads the swipe store of the last assistant message in `currentChat` and
+ * writes its data into `lastGeneratedData`, including syncing stat bars via
+ * `parseUserStats`.  If no assistant message exists, or none has stored swipe
+ * data, `lastGeneratedData` is left unchanged.
+ *
+ * Use this wherever the displayed tracker state must be re-derived from the
+ * authoritative swipe store rather than from chat_metadata (e.g. after a
+ * CHAT_CHANGED caused by branching, or after a message deletion).
+ *
+ * @param {Array} currentChat - Live chat array from getContext().chat
+ * @returns {boolean} True if swipe data was found and applied
+ */
+function syncLastGeneratedDataFromSwipeStore(currentChat) {
+    for (let i = currentChat.length - 1; i >= 0; i--) {
+        const msg = currentChat[i];
+        if (!msg.is_user && !msg.is_system) {
+            const swipeId = msg.swipe_id || 0;
+            const swipeData = getSwipeData(msg, swipeId);
+            if (swipeData) {
+                lastGeneratedData.userStats = swipeData.userStats || null;
+                lastGeneratedData.infoBox = swipeData.infoBox || null;
+                // Normalize characterThoughts to string (backward compat with old object format).
+                if (swipeData.characterThoughts && typeof swipeData.characterThoughts === 'object') {
+                    lastGeneratedData.characterThoughts = JSON.stringify(swipeData.characterThoughts, null, 2);
+                } else {
+                    lastGeneratedData.characterThoughts = swipeData.characterThoughts || null;
+                }
+                if (swipeData.userStats) {
+                    parseUserStats(swipeData.userStats);
+                }
+                return true;
+            }
+            return false; // Last assistant message exists but has no swipe data yet
+        }
+    }
+    return false; // No assistant messages in chat
+}
+
+/**
  * Commits the tracker data from the last assistant message to be used as source for next generation.
  * This should be called when the user has replied to a message, ensuring all swipes of the next
  * response use the same committed context.
@@ -65,22 +105,28 @@ export function commitTrackerData() {
     // Find the last assistant message
     for (let i = chat.length - 1; i >= 0; i--) {
         const message = chat[i];
-        if (!message.is_user) {
+        if (!message.is_user && !message.is_system) {
             // Found last assistant message - commit its tracker data
-            if (message.extra && message.extra.rpg_companion_swipes) {
-                const swipeId = message.swipe_id || 0;
-                const swipeData = message.extra.rpg_companion_swipes[swipeId];
+            const swipeId = message.swipe_id || 0;
+            const swipeData = getSwipeData(message, swipeId);
 
-                if (swipeData) {
-                    // console.log('[RPG Companion] Committing tracker data from assistant message at index', i, 'swipe', swipeId);
-                    committedTrackerData.userStats = swipeData.userStats || null;
-                    committedTrackerData.infoBox = swipeData.infoBox || null;
-                    committedTrackerData.characterThoughts = swipeData.characterThoughts || null;
+            if (swipeData) {
+                // console.log('[RPG Companion] Committing tracker data from assistant message at index', i, 'swipe', swipeId);
+                committedTrackerData.userStats = swipeData.userStats || null;
+                committedTrackerData.infoBox = swipeData.infoBox || null;
+                const rawCharacterThoughts = swipeData.characterThoughts;
+                if (rawCharacterThoughts == null) {
+                    committedTrackerData.characterThoughts = null;
+                } else if (typeof rawCharacterThoughts === 'object') {
+                    committedTrackerData.characterThoughts = JSON.stringify(rawCharacterThoughts);
                 } else {
-                    // console.log('[RPG Companion] No swipe data found for swipe', swipeId);
+                    committedTrackerData.characterThoughts = String(rawCharacterThoughts);
                 }
             } else {
-                // console.log('[RPG Companion] No RPG data found in last assistant message');
+                // No saved swipe data — treat as empty (e.g. first message, no prior generation)
+                committedTrackerData.userStats = null;
+                committedTrackerData.infoBox = null;
+                committedTrackerData.characterThoughts = null;
             }
             break;
         }
@@ -118,17 +164,6 @@ export function onMessageSent() {
     // Note: FAB spinning is NOT shown for together mode since no extra API request is made
     // The RPG data comes embedded in the main response
     // FAB spinning is handled by apiClient.js for separate/external modes when updateRPGData() is called
-
-    // For separate mode with auto-update disabled, commit displayed tracker
-    if (extensionSettings.generationMode === 'separate' && !extensionSettings.autoUpdate) {
-        if (lastGeneratedData.userStats || lastGeneratedData.infoBox || lastGeneratedData.characterThoughts) {
-            committedTrackerData.userStats = lastGeneratedData.userStats;
-            committedTrackerData.infoBox = lastGeneratedData.infoBox;
-            committedTrackerData.characterThoughts = lastGeneratedData.characterThoughts;
-
-            // console.log('[RPG Companion] 💾 SEPARATE MODE: Committed displayed tracker (auto-update disabled)');
-        }
-    }
 }
 
 /**
@@ -193,11 +228,15 @@ export async function onMessageReceived(data) {
             }
 
             const currentSwipeId = lastMessage.swipe_id || 0;
-            lastMessage.extra.rpg_companion_swipes[currentSwipeId] = {
+            const swipeEntry = {
                 userStats: parsedData.userStats,
                 infoBox: parsedData.infoBox,
                 characterThoughts: parsedData.characterThoughts
             };
+            lastMessage.extra.rpg_companion_swipes[currentSwipeId] = swipeEntry;
+
+            // Mirror to swipe_info so this swipe survives page reload even if never manually edited
+            mirrorToSwipeInfo(lastMessage, currentSwipeId, swipeEntry);
 
             // console.log('[RPG Companion] Stored RPG data for swipe', currentSwipeId);
 
@@ -261,13 +300,26 @@ export async function onMessageReceived(data) {
                 // Just render the music player
                 renderMusicPlayer($musicPlayerContainer[0]);
             }
+
+            // When auto-update is disabled, no tracker API call will run for this message. 
+            // Inherit the prior assistant message's tracker data into this swipe slot so that 
+            // commitTrackerDataFromPriorMessage can find a valid state next turn instead of nulling everything.
+            // Inheritance does not overwrite existing data, so it's safe to call even if the condition misses an edge case.
+            if (!extensionSettings.autoUpdate || !isAwaitingNewMessage) {
+                inheritSwipeDataFromPriorMessage(lastMessage, chat.length - 1);
+            }
         }
 
         // Trigger auto-update if enabled (for both separate and external modes)
         // Only trigger if this is a newly generated message, not loading chat history
         if (extensionSettings.autoUpdate && isAwaitingNewMessage) {
+            // Capture the current generation ID before the async gap so that any
+            // message deletion (or a newer generation) that increments the counter
+            // while the 500ms timer or the API call is in-flight will cause
+            // updateRPGData to discard its result rather than stomping the UI.
+            const genId = incrementSeparateGenerationId();
             setTimeout(async () => {
-                await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory);
+                await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory, genId);
                 // Update FAB widgets and strip widgets after separate/external mode update completes
                 setFabLoadingState(false);
                 updateFabWidgets();
@@ -322,6 +374,22 @@ export function onCharacterChanged() {
 
     // Load chat-specific data when switching chats
     loadChatData();
+
+    // chat_metadata may not reflect the actual chat tail for branches, so
+    // loadChatData() may have just restored stale data from the parent chat.
+    // Override lastGeneratedData from the swipe store of the last assistant message.
+    // The message objects in the branch already carry their full swipe stores, making this authoritative.
+    // If no swipe data exists (e.g. branching at message 0, or a chat with no generations yet),
+    // null out lastGeneratedData and committedTrackerData so we don't display stale values from the parent chat.
+    const hadSwipeData = syncLastGeneratedDataFromSwipeStore(getContext().chat);
+    if (!hadSwipeData) {
+        lastGeneratedData.userStats = null;
+        lastGeneratedData.infoBox = null;
+        lastGeneratedData.characterThoughts = null;
+        committedTrackerData.userStats = null;
+        committedTrackerData.infoBox = null;
+        committedTrackerData.characterThoughts = null;
+    }
 
     // Don't call commitTrackerData() here - it would overwrite the loaded committedTrackerData
     // with data from the last message, which may be null/empty. The loaded committedTrackerData
@@ -378,6 +446,9 @@ export function onMessageSwiped(messageIndex) {
         // This is a NEW swipe that will trigger generation
         setLastActionWasSwipe(true);
         setIsAwaitingNewMessage(true);
+        // Immediately commit context from the prior assistant message (N-1) so generation
+        // uses the world state before this message, not the last-viewed sibling swipe.
+        commitTrackerDataFromPriorMessage(messageIndex);
         // console.log('[RPG Companion] 🔵 NEW swipe detected - Set lastActionWasSwipe = true');
     } else {
         // This is navigating to an EXISTING swipe - don't change the flag
@@ -386,12 +457,12 @@ export function onMessageSwiped(messageIndex) {
 
     // console.log('[RPG Companion] Loading data for swipe', currentSwipeId);
 
-    // IMPORTANT: onMessageSwiped is for DISPLAY only!
-    // lastGeneratedData is for DISPLAY, committedTrackerData is for GENERATION
-    // It's safe to load swipe data into lastGeneratedData - it won't be committed due to !lastActionWasSwipe check
-    if (message.extra && message.extra.rpg_companion_swipes && message.extra.rpg_companion_swipes[currentSwipeId]) {
-        const swipeData = message.extra.rpg_companion_swipes[currentSwipeId];
-
+    // Load saved swipe data into both display (lastGeneratedData) and extensionSettings.
+    // Safe to call parseUserStats() unconditionally because updateMessageSwipeData() is called
+    // on every manual edit, so the swipe store always reflects the latest user changes before
+    // any navigation can overwrite them.
+    const swipeData = getSwipeData(message, currentSwipeId);
+    if (swipeData) {
         // Load swipe data into lastGeneratedData for display (both modes)
         lastGeneratedData.userStats = swipeData.userStats || null;
         lastGeneratedData.infoBox = swipeData.infoBox || null;
@@ -403,13 +474,12 @@ export function onMessageSwiped(messageIndex) {
             lastGeneratedData.characterThoughts = swipeData.characterThoughts || null;
         }
 
-        // DON'T parse user stats when loading swipe data
-        // This would overwrite manually edited fields (like Conditions) with old swipe data
-        // The lastGeneratedData is loaded for display purposes only
-        // parseUserStats() updates extensionSettings.userStats which should only be modified
-        // by new generations or manual edits, not by swipe navigation
+        // Sync extensionSettings.userStats so stat bars reflect this swipe
+        if (swipeData.userStats) {
+            parseUserStats(swipeData.userStats);
+        }
 
-        // console.log('[RPG Companion] 🔄 Loaded swipe data into lastGeneratedData for display:', currentSwipeId);
+        // console.log('[RPG Companion] 🔄 Loaded swipe data for swipe:', currentSwipeId);
     } else {
         // console.log('[RPG Companion] ℹ️ No stored data for swipe:', currentSwipeId);
     }
@@ -422,8 +492,83 @@ export function onMessageSwiped(messageIndex) {
     renderQuests();
     renderMusicPlayer($musicPlayerContainer[0]);
 
+    // Update widget strips with the newly loaded swipe data
+    updateFabWidgets();
+    updateStripWidgets();
+
     // Update chat thought overlays
     updateChatThoughts();
+}
+
+/**
+ * Event handler for when a message is deleted.
+ * Re-syncs lastGeneratedData, committedTrackerData, and all UI panels to the
+ * new last assistant message's active swipe — or clears everything if no
+ * assistant messages remain.
+ */
+export function onMessageDeleted() {
+    if (!extensionSettings.enabled) return;
+
+    // console.log('[RPG Companion] 🗑️ EVENT: onMessageDeleted');
+
+    // Invalidate any pending or in-flight separate-mode generation so
+    // its result is not applied to the (now-changed) chat tail.
+    incrementSeparateGenerationId();
+
+    const currentChat = getContext().chat;
+
+    // Walk backward to find the new last assistant message.
+    let lastAssistantIndex = -1;
+    for (let i = currentChat.length - 1; i >= 0; i--) {
+        if (!currentChat[i].is_user && !currentChat[i].is_system) {
+            lastAssistantIndex = i;
+            break;
+        }
+    }
+
+    if (lastAssistantIndex === -1) {
+        // No assistant messages remain — clear all state.
+        lastGeneratedData.userStats = null;
+        lastGeneratedData.infoBox = null;
+        lastGeneratedData.characterThoughts = null;
+        committedTrackerData.userStats = null;
+        committedTrackerData.infoBox = null;
+        committedTrackerData.characterThoughts = null;
+        // console.log('[RPG Companion] 🗑️ No assistant messages remain — cleared all tracker state.');
+    } else {
+        // Restore display state from the new tail message's active swipe.
+        // If the message has no swipe data yet, null the fields so we
+        // don't show stale data from the deleted message.
+        const hadSwipeData = syncLastGeneratedDataFromSwipeStore(currentChat);
+        if (!hadSwipeData) {
+            lastGeneratedData.userStats = null;
+            lastGeneratedData.infoBox = null;
+            lastGeneratedData.characterThoughts = null;
+            committedTrackerData.userStats = null;
+            committedTrackerData.infoBox = null;
+            committedTrackerData.characterThoughts = null;
+            // console.log('[RPG Companion] 🗑️ No swipe data for last assistant message — cleared display state.');
+        }
+
+        // Commit context from the message *before* the new tail assistant message,
+        // so any subsequent generation uses the correct N-1 world state.
+        commitTrackerDataFromPriorMessage(lastAssistantIndex);
+    }
+
+    // Re-render all panels.
+    renderUserStats();
+    renderInfoBox();
+    renderThoughts();
+    renderInventory();
+    renderQuests();
+    renderMusicPlayer($musicPlayerContainer[0]);
+
+    // Update widget strips.
+    updateFabWidgets();
+    updateStripWidgets();
+
+    // Persist updated state.
+    saveChatData();
 }
 
 /**

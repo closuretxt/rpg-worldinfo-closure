@@ -30,6 +30,7 @@ import {
     SPOTIFY_FORMAT_INSTRUCTION
 } from './promptBuilder.js';
 import { restoreCheckpointOnLoad } from '../features/chapterCheckpoint.js';
+import { commitTrackerDataFromPriorMessage } from '../../core/persistence.js';
 
 // Track suppression state for event handler
 let currentSuppressionState = false;
@@ -622,25 +623,15 @@ export async function onGenerationStarted(type, data, dryRun) {
         const shouldCommit = isUserMessage && !lastActionWasSwipe && currentChatLength !== lastCommittedChatLength;
 
         if (shouldCommit) {
-            // console.log('[RPG Companion] 📝 TOGETHER MODE COMMIT: User sent message - committing data from BEFORE user message');
+            // console.log('[RPG Companion] 📝 TOGETHER MODE COMMIT: User sent message - committing from N-1 assistant message');
             // console.log('[RPG Companion]   Chat length:', currentChatLength, 'Last committed:', lastCommittedChatLength);
-            // console.log('[RPG Companion]   BEFORE: committedTrackerData =', {
-            //     userStats: committedTrackerData.userStats ? `${committedTrackerData.userStats.substring(0, 50)}...` : 'null',
-            //     infoBox: committedTrackerData.infoBox ? 'exists' : 'null',
-            //     characterThoughts: committedTrackerData.characterThoughts ? `${committedTrackerData.characterThoughts.substring(0, 100)}...` : 'null'
-            // // });
-            // console.log('[RPG Companion]   BEFORE: lastGeneratedData =', {
-            //     userStats: lastGeneratedData.userStats ? `${lastGeneratedData.userStats.substring(0, 50)}...` : 'null',
-            //     infoBox: lastGeneratedData.infoBox ? 'exists' : 'null',
-            //     characterThoughts: lastGeneratedData.characterThoughts ? `${lastGeneratedData.characterThoughts.substring(0, 100)}...` : 'null'
-            // });
 
-            // Commit displayed data (from before user sent message)
-            committedTrackerData.userStats = lastGeneratedData.userStats;
-            committedTrackerData.infoBox = lastGeneratedData.infoBox;
-            committedTrackerData.characterThoughts = lastGeneratedData.characterThoughts;
+            // Commit from the prior assistant message's swipe store (N-1 rule).
+            // currentChatLength - 1 is the new AI placeholder; the function walks backward
+            // past it and the user message to find the previous AI message's tracker state.
+            commitTrackerDataFromPriorMessage(currentChatLength - 1);
 
-            // Track chat length to prevent duplicate commits
+            // Track chat length to prevent duplicate commits from streaming
             lastCommittedChatLength = currentChatLength;
 
             // console.log('[RPG Companion]   AFTER: committedTrackerData =', {
@@ -668,38 +659,14 @@ export async function onGenerationStarted(type, data, dryRun) {
     // console.log('[RPG Companion DEBUG] Before generating:', lastGeneratedData.characterThoughts, ' , committed - ', committedTrackerData.characterThoughts);
     if ((extensionSettings.generationMode === 'separate' || extensionSettings.generationMode === 'external') && !isGenerating) {
         if (!lastActionWasSwipe) {
-            // User sent a new message - commit lastGeneratedData before generation
-            // console.log('[RPG Companion] 📝 COMMIT: New message - committing lastGeneratedData');
-            // console.log('[RPG Companion]   BEFORE commit - committedTrackerData:', {
-            //      userStats: committedTrackerData.userStats ? 'exists' : 'null',
-            //      infoBox: committedTrackerData.infoBox ? 'exists' : 'null',
-            //      characterThoughts: committedTrackerData.characterThoughts ? 'exists' : 'null'
-            // // });
-            // console.log('[RPG Companion]   BEFORE commit - lastGeneratedData:', {
-            //      userStats: lastGeneratedData.userStats ? 'exists' : 'null',
-            //      infoBox: lastGeneratedData.infoBox ? 'exists' : 'null',
-            //      characterThoughts: lastGeneratedData.characterThoughts ? 'exists' : 'null'
-            // });
-            committedTrackerData.userStats = lastGeneratedData.userStats;
-            committedTrackerData.infoBox = lastGeneratedData.infoBox;
-            committedTrackerData.characterThoughts = lastGeneratedData.characterThoughts;
-            // console.log('[RPG Companion]   AFTER commit - committedTrackerData:', {
-            //      userStats: committedTrackerData.userStats ? 'exists' : 'null',
-            //      infoBox: committedTrackerData.infoBox ? 'exists' : 'null',
-            //      characterThoughts: committedTrackerData.characterThoughts ? 'exists' : 'null'
-            // });
-
-            // Reset flag after committing (ready for next cycle)
-
-        } else {
-            // console.log('[RPG Companion] 🔄 SWIPE: Using existing committedTrackerData (no commit)');
-            // console.log('[RPG Companion]   committedTrackerData:', {
-            //      userStats: committedTrackerData.userStats ? 'exists' : 'null',
-            //      infoBox: committedTrackerData.infoBox ? 'exists' : 'null',
-            //      characterThoughts: committedTrackerData.characterThoughts ? 'exists' : 'null'
-            // });
-            // Reset flag after using it (swipe generation complete, ready for next action)
+            // User sent a new message - commit from the prior assistant message's swipe store
+            // (N-1 rule) rather than lastGeneratedData, which may reflect a sibling swipe's
+            // outcome and would poison the context for the new generation.
+            // currentChatLength - 1 is the new AI placeholder; search starts before it.
+            commitTrackerDataFromPriorMessage(currentChatLength - 1);
         }
+        // If lastActionWasSwipe, context was already committed by commitTrackerDataFromPriorMessage
+        // in onMessageSwiped before generation started.
     }
 
     // Use the committed tracker data as source for generation

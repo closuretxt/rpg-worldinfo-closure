@@ -42,7 +42,7 @@ import {
     setMusicPlayerContainer,
     clearSessionAvatarPrompts
 } from './src/core/state.js';
-import { loadSettings, saveSettings, saveChatData, loadChatData, updateMessageSwipeData } from './src/core/persistence.js';
+import { loadSettings, saveSettings, saveChatData, loadChatData, updateMessageSwipeData, commitTrackerDataFromPriorMessage } from './src/core/persistence.js';
 import { registerAllEvents } from './src/core/events.js';
 
 // Generation & Parsing modules
@@ -151,6 +151,7 @@ import {
     onMessageReceived,
     onCharacterChanged,
     onMessageSwiped,
+    onMessageDeleted,
     updatePersonaAvatar,
     clearExtensionPrompts,
     onGenerationEnded,
@@ -799,6 +800,17 @@ async function initUI() {
             // console.log('[RPG Companion] Extension is disabled. Please enable it in the Extensions tab.');
             return;
         }
+        const currentChat = getContext().chat;
+        let lastAssistantIndex = -1;
+        for (let i = currentChat.length - 1; i >= 0; i--) {
+            if (!currentChat[i].is_user && !currentChat[i].is_system) {
+                lastAssistantIndex = i;
+                break;
+            }
+        }
+        if (lastAssistantIndex !== -1) {
+            commitTrackerDataFromPriorMessage(lastAssistantIndex);
+        }
         await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory);
     });
 
@@ -806,6 +818,17 @@ async function initUI() {
     $('#rpg-strip-refresh').on('click', async function() {
         if (!extensionSettings.enabled) {
             return;
+        }
+        const currentChat = getContext().chat;
+        let lastAssistantIndex = -1;
+        for (let i = currentChat.length - 1; i >= 0; i--) {
+            if (!currentChat[i].is_user && !currentChat[i].is_system) {
+                lastAssistantIndex = i;
+                break;
+            }
+        }
+        if (lastAssistantIndex !== -1) {
+            commitTrackerDataFromPriorMessage(lastAssistantIndex);
         }
         await updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory);
     });
@@ -1354,6 +1377,7 @@ jQuery(async () => {
                 [event_types.GENERATION_ENDED]: onGenerationEnded,
                 [event_types.CHAT_CHANGED]: [onCharacterChanged, updatePersonaAvatar, restoreCheckpointOnLoad, clearSessionAvatarPrompts],
                 [event_types.MESSAGE_SWIPED]: onMessageSwiped,
+                [event_types.MESSAGE_DELETED]: onMessageDeleted,
                 [event_types.USER_MESSAGE_RENDERED]: updatePersonaAvatar,
                 [event_types.SETTINGS_UPDATED]: updatePersonaAvatar
             });

@@ -382,6 +382,32 @@ export let isPlotProgression = false;
 export let isAwaitingNewMessage = false;
 
 /**
+ * Monotonically-increasing counter used to detect stale separate-mode tracker
+ * generation results. Incremented each time a new automated generation is
+ * triggered or a message deletion occurs so any in-flight (or pending) call
+ * from a previous generation can recognise that its result is no longer valid.
+ */
+let separateGenerationId = 0;
+
+/**
+ * Returns the current separate generation ID.
+ * @returns {number}
+ */
+export function getSeparateGenerationId() {
+    return separateGenerationId;
+}
+
+/**
+ * Increments and returns the new separate generation ID.
+ * Call this when starting a new generation or when a deletion
+ * invalidates any pending/in-flight generation.
+ * @returns {number} The new ID
+ */
+export function incrementSeparateGenerationId() {
+    return ++separateGenerationId;
+}
+
+/**
  * Temporary storage for pending dice roll (not saved until user clicks "Save Roll")
  */
 export let pendingDiceRoll = null;

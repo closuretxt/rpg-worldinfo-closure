@@ -31,12 +31,43 @@ import { renderUserStats } from '../rendering/userStats.js';
 import { renderInfoBox } from '../rendering/infoBox.js';
 import { renderThoughts } from '../rendering/thoughts.js';
 import { updateFabWidgets } from './mobile.js';
+import { safeToSnake } from '../../utils/transformations.js';
 
 let $editorModal = null;
 let activeTab = 'userStats';
 let tempConfig = null; // Temporary config for cancel functionality
 let tempAssociation = null; // Temporary association state: { presetId: string|null, entityKey: string|null }
 let originalAssociation = null; // Original association when editor opened
+
+
+function set_ids_names(list_with_stats, index, value) {
+    list_with_stats[index].name = value;
+    const item = list_with_stats[index];
+    const oldId = item?.id;
+
+    item.name = value;
+    const ids = list_with_stats.filter((_, i) => i !== index).map(stat => stat.id);
+    const snake_value = safeToSnake(value);  // new id format
+    if (snake_value !== value && !ids.includes(snake_value)) { // check if this id already exists
+        item.id = snake_value;
+    }
+
+    const newId = item.id;
+    // If the ID changed, migrate any stored values keyed by the old ID
+    if (oldId && newId && oldId !== newId) {
+        if (extensionSettings.userStats && Object.prototype.hasOwnProperty.call(extensionSettings.userStats, oldId)) {
+            extensionSettings.userStats[newId] = extensionSettings.userStats[oldId];
+            delete extensionSettings.userStats[oldId];
+        }
+
+        if (extensionSettings.classicStats && Object.prototype.hasOwnProperty.call(extensionSettings.classicStats, oldId)) {
+            extensionSettings.classicStats[newId] = extensionSettings.classicStats[oldId];
+            delete extensionSettings.classicStats[oldId];
+        }
+    }
+    return list_with_stats;
+}
+
 
 /**
  * Initialize the tracker editor modal
@@ -885,7 +916,9 @@ function setupUserStatsListeners() {
     // Rename stat
     $('.rpg-stat-name').off('blur').on('blur', function () {
         const index = $(this).data('index');
-        extensionSettings.trackerConfig.userStats.customStats[index].name = $(this).val();
+        const value = $(this).val();
+        const list_with_stats = extensionSettings.trackerConfig.userStats.customStats
+        set_ids_names(list_with_stats, index, value);
     });
 
     // Change stat max value
@@ -943,7 +976,9 @@ function setupUserStatsListeners() {
     // Rename attribute
     $('.rpg-attr-name').off('blur').on('blur', function () {
         const index = $(this).data('index');
-        extensionSettings.trackerConfig.userStats.rpgAttributes[index].name = $(this).val();
+        const value = $(this).val();
+        const list_with_stats = extensionSettings.trackerConfig.userStats.rpgAttributes
+        set_ids_names(list_with_stats, index, value);
     });
 
     // Enable/disable RPG Attributes section toggle
@@ -1394,7 +1429,9 @@ function setupPresentCharactersListeners() {
     // Rename field
     $('.rpg-field-label').off('blur').on('blur', function () {
         const index = $(this).data('index');
-        extensionSettings.trackerConfig.presentCharacters.customFields[index].name = $(this).val();
+        const value = $(this).val();
+        const list_with_stats = extensionSettings.trackerConfig.presentCharacters.customFields
+        set_ids_names(list_with_stats, index, value);
     });
 
     // Update description
@@ -1443,7 +1480,9 @@ function setupPresentCharactersListeners() {
     // Rename character stat
     $('.rpg-char-stat-label').off('blur').on('blur', function () {
         const index = $(this).data('index');
-        extensionSettings.trackerConfig.presentCharacters.characterStats.customStats[index].name = $(this).val();
+        const value = $(this).val();
+        const list_with_stats = extensionSettings.trackerConfig.presentCharacters.characterStats.customStats
+        set_ids_names(list_with_stats, index, value);
     });
 }
 
