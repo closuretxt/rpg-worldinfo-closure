@@ -363,9 +363,9 @@ export function renderInfoBox() {
         row1Widgets.push(`
             <div class="rpg-dashboard-widget rpg-calendar-widget">
                 ${dateLockIconHtml}
-                <div class="rpg-calendar-top rpg-editable" contenteditable="true" data-field="month" data-full-value="${data.month || ''}" title="${i18n.getTranslation('infoBox.clickToEdit')}">${monthDisplay}</div>
-                <div class="rpg-calendar-day" title="${i18n.getTranslation('infoBox.clickToEdit')}"><span class="rpg-calendar-day-text rpg-editable" contenteditable="true" data-field="weekday" data-full-value="${data.weekday || ''}">${weekdayDisplay}</span></div>
-                <div class="rpg-calendar-year rpg-editable" contenteditable="true" data-field="year" data-full-value="${data.year || ''}" title="${i18n.getTranslation('infoBox.clickToEdit')}">${yearDisplay}</div>
+                <div class="rpg-calendar-top rpg-editable" contenteditable="true" data-field="month" data-full-value="${data.month || ''}" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${monthDisplay}</div>
+                <div class="rpg-calendar-day" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}"><span class="rpg-calendar-day-text rpg-editable" contenteditable="true" data-field="weekday" data-full-value="${data.weekday || ''}">${weekdayDisplay}</span></div>
+                <div class="rpg-calendar-year rpg-editable" contenteditable="true" data-field="year" data-full-value="${data.year || ''}" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${yearDisplay}</div>
             </div>
         `);
     }
@@ -373,14 +373,14 @@ export function renderInfoBox() {
     // Weather widget - show if enabled
     if (config?.widgets?.weather?.enabled) {
         const weatherEmoji = data.weatherEmoji || '🌤️';
-        const weatherForecast = data.weatherForecast || i18n.getTranslation('infoBox.weatherFallback');
+        const weatherForecast = data.weatherForecast || i18n.getTranslation('infoBox.weatherFallback') || 'Weather unknown';
         const weatherLockIconHtml = getLockIconHtml('infoBox', 'weather');
 
         row1Widgets.push(`
             <div class="rpg-dashboard-widget rpg-weather-widget">
                 ${weatherLockIconHtml}
-                <div class="rpg-weather-icon rpg-editable" contenteditable="true" data-field="weatherEmoji" title="${i18n.getTranslation('userStats.clickToEditEmoji')}">${weatherEmoji}</div>
-                <div class="rpg-weather-forecast rpg-editable" contenteditable="true" data-field="weatherForecast" title="${i18n.getTranslation('infoBox.clickToEdit')}">${weatherForecast}</div>
+                <div class="rpg-weather-icon rpg-editable" contenteditable="true" data-field="weatherEmoji" title="${i18n.getTranslation('userStats.clickToEditEmoji') || 'Click to edit emoji'}">${weatherEmoji}</div>
+                <div class="rpg-weather-forecast rpg-editable" contenteditable="true" data-field="weatherForecast" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${weatherForecast}</div>
             </div>
         `);
     }
@@ -429,7 +429,7 @@ export function renderInfoBox() {
                         <div class="rpg-thermometer-fill" style="height: ${tempPercent}%; background: ${tempColor}"></div>
                     </div>
                 </div>
-                <div class="rpg-temp-value rpg-editable" contenteditable="true" data-field="temperature" title="${i18n.getTranslation('infoBox.clickToEdit')}">${tempDisplay}</div>
+                <div class="rpg-temp-value rpg-editable" contenteditable="true" data-field="temperature" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${tempDisplay}</div>
             </div>
         `);
     }
@@ -464,9 +464,9 @@ export function renderInfoBox() {
                     </div>
                 </div>
                 <div class="rpg-time-range">
-                    <div class="rpg-time-value rpg-editable" contenteditable="true" data-field="timeStart" title="${i18n.getTranslation('infoBox.clickToEdit')}">${timeStartDisplay}</div>
+                    <div class="rpg-time-value rpg-editable" contenteditable="true" data-field="timeStart" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${timeStartDisplay}</div>
                     <span class="rpg-time-separator">→</span>
-                    <div class="rpg-time-value rpg-editable" contenteditable="true" data-field="timeEnd" title="${i18n.getTranslation('infoBox.clickToEdit')}">${timeEndDisplay}</div>
+                    <div class="rpg-time-value rpg-editable" contenteditable="true" data-field="timeEnd" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${timeEndDisplay}</div>
                 </div>
             </div>
         `);
@@ -481,7 +481,7 @@ export function renderInfoBox() {
 
     // Row 2: Location widget (full width) - show if enabled
     if (config?.widgets?.location?.enabled) {
-        const locationDisplay = data.location || i18n.getTranslation('infoBox.locationFallback');
+        const locationDisplay = data.location || i18n.getTranslation('infoBox.locationFallback') || 'Unknown location';
         const locationLockIconHtml = getLockIconHtml('infoBox', 'location');
 
         html += `
@@ -491,7 +491,7 @@ export function renderInfoBox() {
                     <div class="rpg-map-bg">
                         <div class="rpg-map-marker">📍</div>
                     </div>
-                    <div class="rpg-location-text rpg-editable" contenteditable="true" data-field="location" title="${i18n.getTranslation('infoBox.clickToEdit')}">${locationDisplay}</div>
+                    <div class="rpg-location-text rpg-editable" contenteditable="true" data-field="location" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${locationDisplay}</div>
                 </div>
             </div>
         `;
@@ -541,7 +541,7 @@ export function renderInfoBox() {
                         <div class="rpg-notebook-ring"></div>
                         <div class="rpg-notebook-ring"></div>
                     </div>
-                    <div class="rpg-notebook-title" data-i18n-key="infobox.recentEvents.title">${i18n.getTranslation('infobox.recentEvents.title')}</div>
+                    <div class="rpg-notebook-title" data-i18n-key="infobox.recentEvents.title">${i18n.getTranslation('infobox.recentEvents.title') || 'Recent Events'}</div>
                     <div class="rpg-notebook-lines">
         `;
 
@@ -550,7 +550,7 @@ export function renderInfoBox() {
             html += `
                         <div class="rpg-notebook-line">
                             <span class="rpg-bullet">•</span>
-                            <span class="rpg-event-text rpg-editable" contenteditable="true" data-field="event${i + 1}" title="${i18n.getTranslation('infoBox.clickToEdit')}">${validEvents[i]}</span>
+                            <span class="rpg-event-text rpg-editable" contenteditable="true" data-field="event${i + 1}" title="${i18n.getTranslation('infoBox.clickToEdit') || 'Click to edit'}">${validEvents[i]}</span>
                         </div>
             `;
         }
@@ -560,7 +560,7 @@ export function renderInfoBox() {
             html += `
                         <div class="rpg-notebook-line rpg-event-add">
                             <span class="rpg-bullet">+</span>
-                            <span class="rpg-event-text rpg-editable rpg-event-placeholder" contenteditable="true" data-field="event${i + 1}" title="Click to add event" data-i18n-key="infobox.recentEvents.addEventPlaceholder">${i18n.getTranslation('infobox.recentEvents.addEventPlaceholder')}</span>
+                            <span class="rpg-event-text rpg-editable rpg-event-placeholder" contenteditable="true" data-field="event${i + 1}" title="Click to add event" data-i18n-key="infobox.recentEvents.addEventPlaceholder">${i18n.getTranslation('infobox.recentEvents.addEventPlaceholder') || 'Click to add event'}</span>
                         </div>
             `;
         }
@@ -652,7 +652,7 @@ export function renderInfoBox() {
 
             // Update icon
             $lockIcon.text(newLockState ? '🔒' : '🔓');
-            $lockIcon.attr('title', newLockState ? i18n.getTranslation('infoBox.locked') : i18n.getTranslation('infoBox.unlocked'));
+            $lockIcon.attr('title', newLockState ? (i18n.getTranslation('infoBox.locked') || 'Locked') : (i18n.getTranslation('infoBox.unlocked') || 'Unlocked'));
             $lockIcon.toggleClass('locked', newLockState);
 
             // Save settings to persist lock state

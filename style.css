@@ -4716,6 +4716,9 @@ body:has(.rpg-panel.rpg-position-left) #sheld {
 
 .rpg-restore-prompt-btn {
     font-size: 0.9em;
+    white-space: nowrap;
+    min-width: 120px;
+    padding: 0.5em 1em;
 }
 
 /* Editor buttons */
@@ -9235,6 +9238,7 @@ body:has(.rpg-panel.rpg-mobile-open) .rpg-fab-widget-container {
     color: var(--SmartThemeBodyColor, #eaeaea);
     font-size: 14px;
     font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
     transition: all 0.2s ease;
 }

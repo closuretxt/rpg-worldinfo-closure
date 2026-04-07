@@ -71,7 +71,7 @@ export class EncounterModal {
             }
 
             // Show loading state
-            this.showLoadingState('Initializing combat encounter...');
+            this.showLoadingState(i18n.getTranslation('encounter.ui.initializingCombatEncounter') || 'Initializing combat encounter...');
 
             // Open the modal
             this.modal.classList.add('is-open');
@@ -88,7 +88,7 @@ export class EncounterModal {
             });
 
             if (!response) {
-                this.showErrorWithRegenerate('No response received from AI. The model may be unavailable.');
+                this.showErrorWithRegenerate(i18n.getTranslation('encounter.ui.error.noResponse') || 'No response received from AI. The model may be unavailable.');
                 return;
             }
 
@@ -96,7 +96,7 @@ export class EncounterModal {
             const combatData = parseEncounterJSON(response);
 
             if (!combatData || !combatData.party || !combatData.enemies) {
-                this.showErrorWithRegenerate('Invalid JSON format detected. The AI returned malformed data. Ensure the Max Response Length is set to at least 2048 tokens, otherwise the model might run out of tokens and produce unfinished structures.');
+                this.showErrorWithRegenerate(i18n.getTranslation('encounter.ui.error.invalidJsonFormat') || 'Invalid JSON format detected. The AI returned malformed data. Ensure the Max Response Length is set to at least 2048 tokens, otherwise the model might run out of tokens and produce unfinished structures.');
                 return;
             }
 
@@ -121,7 +121,7 @@ export class EncounterModal {
 
         } catch (error) {
             console.error('[RPG Companion] Error initializing encounter:', error);
-            this.showErrorWithRegenerate(`Failed to initialize combat: ${error.message}`);
+            this.showErrorWithRegenerate(`${i18n.getTranslation('encounter.ui.error.failedToInitialize') || 'Failed to initialize combat:'} ${error.message}`);
         } finally {
             this.isInitializing = false;
         }
@@ -142,94 +142,94 @@ export class EncounterModal {
                     <div class="rpg-encounter-overlay"></div>
                     <div class="rpg-encounter-container" style="max-width: 600px;">
                         <div class="rpg-encounter-header">
-                            <h2><i class="fa-solid fa-book-open"></i> Configure Combat Narrative</h2>
+                            <h2><i class="fa-solid fa-book-open"></i> ${i18n.getTranslation('encounter.configModal.title') || 'Configure Combat Narrative'}</h2>
                         </div>
                         <div class="rpg-encounter-content" style="padding: 24px;">
                             <div class="rpg-narrative-config-section">
                                 <label class="label_text" style="margin-bottom: 16px; display: block; font-weight: 600;">
-                                    <i class="fa-solid fa-swords"></i> Combat Narrative Style
+                                    <i class="fa-solid fa-swords"></i> ${i18n.getTranslation('encounter.configModal.combatNarrativeStyle') || 'Combat Narrative Style'}
                                 </label>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-combat-tense" style="min-width: 100px;">Tense:</label>
+                                    <label for="config-combat-tense" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.tense') || 'Tense:'}</label>
                                     <select id="config-combat-tense" class="rpg-select" style="flex: 1;">
-                                        <option value="present" ${combatDefaults.tense === 'present' ? 'selected' : ''}>Present</option>
-                                        <option value="past" ${combatDefaults.tense === 'past' ? 'selected' : ''}>Past</option>
+                                        <option value="present" ${combatDefaults.tense === 'present' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.present') || 'Present'}</option>
+                                        <option value="past" ${combatDefaults.tense === 'past' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.past') || 'Past'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-combat-person" style="min-width: 100px;">Person:</label>
+                                    <label for="config-combat-person" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.person') || 'Person:'}</label>
                                     <select id="config-combat-person" class="rpg-select" style="flex: 1;">
-                                        <option value="first" ${combatDefaults.person === 'first' ? 'selected' : ''}>First Person</option>
-                                        <option value="second" ${combatDefaults.person === 'second' ? 'selected' : ''}>Second Person</option>
-                                        <option value="third" ${combatDefaults.person === 'third' ? 'selected' : ''}>Third Person</option>
+                                        <option value="first" ${combatDefaults.person === 'first' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.firstPerson') || 'First Person'}</option>
+                                        <option value="second" ${combatDefaults.person === 'second' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.secondPerson') || 'Second Person'}</option>
+                                        <option value="third" ${combatDefaults.person === 'third' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.thirdPerson') || 'Third Person'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-combat-narration" style="min-width: 100px;">Narration:</label>
+                                    <label for="config-combat-narration" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.narration') || 'Narration:'}</label>
                                     <select id="config-combat-narration" class="rpg-select" style="flex: 1;">
-                                        <option value="omniscient" ${combatDefaults.narration === 'omniscient' ? 'selected' : ''}>Omniscient</option>
-                                        <option value="limited" ${combatDefaults.narration === 'limited' ? 'selected' : ''}>Limited</option>
+                                        <option value="omniscient" ${combatDefaults.narration === 'omniscient' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.omniscient') || 'Omniscient'}</option>
+                                        <option value="limited" ${combatDefaults.narration === 'limited' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.limited') || 'Limited'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-combat-pov" style="min-width: 100px;">Point of View:</label>
-                                    <input type="text" id="config-combat-pov" class="text_pole" placeholder="narrator" value="${combatDefaults.pov || ''}" style="flex: 1;" />
+                                    <label for="config-combat-pov" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.pointOfView') || 'Point of View:'}</label>
+                                    <input type="text" id="config-combat-pov" class="text_pole" placeholder="${i18n.getTranslation('encounter.configModal.placeholders.narrator') || 'narrator'}" value="${combatDefaults.pov || ''}" style="flex: 1;" />
                                 </div>
                             </div>
 
                             <div class="rpg-narrative-config-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rpg-border, rgba(255,255,255,0.1));">
                                 <label class="label_text" style="margin-bottom: 16px; display: block; font-weight: 600;">
-                                    <i class="fa-solid fa-scroll"></i> Combat Summary Style
+                                    <i class="fa-solid fa-scroll"></i> ${i18n.getTranslation('encounter.configModal.combatSummaryStyle') || 'Combat Summary Style'}
                                 </label>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-summary-tense" style="min-width: 100px;">Tense:</label>
+                                    <label for="config-summary-tense" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.tense') || 'Tense:'}</label>
                                     <select id="config-summary-tense" class="rpg-select" style="flex: 1;">
-                                        <option value="present" ${summaryDefaults.tense === 'present' ? 'selected' : ''}>Present</option>
-                                        <option value="past" ${summaryDefaults.tense === 'past' ? 'selected' : ''}>Past</option>
+                                        <option value="present" ${summaryDefaults.tense === 'present' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.present') || 'Present'}</option>
+                                        <option value="past" ${summaryDefaults.tense === 'past' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.past') || 'Past'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-summary-person" style="min-width: 100px;">Person:</label>
+                                    <label for="config-summary-person" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.person') || 'Person:'}</label>
                                     <select id="config-summary-person" class="rpg-select" style="flex: 1;">
-                                        <option value="first" ${summaryDefaults.person === 'first' ? 'selected' : ''}>First Person</option>
-                                        <option value="second" ${summaryDefaults.person === 'second' ? 'selected' : ''}>Second Person</option>
-                                        <option value="third" ${summaryDefaults.person === 'third' ? 'selected' : ''}>Third Person</option>
+                                        <option value="first" ${summaryDefaults.person === 'first' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.firstPerson') || 'First Person'}</option>
+                                        <option value="second" ${summaryDefaults.person === 'second' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.secondPerson') || 'Second Person'}</option>
+                                        <option value="third" ${summaryDefaults.person === 'third' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.thirdPerson') || 'Third Person'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-summary-narration" style="min-width: 100px;">Narration:</label>
+                                    <label for="config-summary-narration" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.narration') || 'Narration:'}</label>
                                     <select id="config-summary-narration" class="rpg-select" style="flex: 1;">
-                                        <option value="omniscient" ${summaryDefaults.narration === 'omniscient' ? 'selected' : ''}>Omniscient</option>
-                                        <option value="limited" ${summaryDefaults.narration === 'limited' ? 'selected' : ''}>Limited</option>
+                                        <option value="omniscient" ${summaryDefaults.narration === 'omniscient' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.omniscient') || 'Omniscient'}</option>
+                                        <option value="limited" ${summaryDefaults.narration === 'limited' ? 'selected' : ''}>${i18n.getTranslation('encounter.configModal.options.limited') || 'Limited'}</option>
                                     </select>
                                 </div>
 
                                 <div class="rpg-setting-row" style="margin-bottom: 12px;">
-                                    <label for="config-summary-pov" style="min-width: 100px;">Point of View:</label>
-                                    <input type="text" id="config-summary-pov" class="text_pole" placeholder="narrator" value="${summaryDefaults.pov || ''}" style="flex: 1;" />
+                                    <label for="config-summary-pov" style="min-width: 100px;">${i18n.getTranslation('encounter.configModal.labels.pointOfView') || 'Point of View:'}</label>
+                                    <input type="text" id="config-summary-pov" class="text_pole" placeholder="${i18n.getTranslation('encounter.configModal.placeholders.narrator') || 'narrator'}" value="${summaryDefaults.pov || ''}" style="flex: 1;" />
                                 </div>
                             </div>
 
                             <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rpg-border, rgba(255,255,255,0.1));">
                                 <label class="checkbox_label" style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="config-remember" ${extensionSettings.encounterSettings?.narrativeConfigured ? 'checked' : ''} style="margin: 0;" />
-                                    <span style="color: var(--rpg-text, #eaeaea);">Remember these settings for future encounters</span>
+                                    <span style="color: var(--rpg-text, #eaeaea);">${i18n.getTranslation('encounter.configModal.rememberSettings') || 'Remember these settings for future encounters'}</span>
                                 </label>
                             </div>
 
                             <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
                                 <button id="config-cancel" class="rpg-btn rpg-btn-secondary" style="padding: 12px 24px;">
-                                    <i class="fa-solid fa-times"></i> Cancel
+                                    <i class="fa-solid fa-times"></i> ${i18n.getTranslation('global.cancel') || 'Cancel'}
                                 </button>
                                 <button id="config-proceed" class="rpg-btn rpg-btn-primary" style="padding: 12px 24px;">
-                                    <i class="fa-solid fa-play"></i> Proceed
+                                    <i class="fa-solid fa-play"></i> ${i18n.getTranslation('encounter.configModal.buttons.proceed') || 'Proceed'}
                                 </button>
                             </div>
                         </div>
@@ -303,12 +303,12 @@ export class EncounterModal {
                 <div class="rpg-encounter-overlay"></div>
                 <div class="rpg-encounter-container">
                     <div class="rpg-encounter-header">
-                        <h2><i class="fa-solid fa-swords"></i> Combat Encounter</h2>
+                        <h2><i class="fa-solid fa-swords"></i> ${i18n.getTranslation('encounter.ui.combatEncounterTitle') || 'Combat Encounter'}</h2>
                         <div class="rpg-encounter-header-buttons">
-                            <button id="rpg-encounter-conclude" class="rpg-encounter-conclude-btn" title="Conclude encounter early">
-                                <i class="fa-solid fa-flag-checkered"></i> Conclude Encounter
+                            <button id="rpg-encounter-conclude" class="rpg-encounter-conclude-btn" title="${i18n.getTranslation('encounter.ui.concludeEncounterTitle') || 'Conclude encounter early'}">
+                                <i class="fa-solid fa-flag-checkered"></i> ${i18n.getTranslation('encounter.ui.concludeEncounterButton') || 'Conclude Encounter'}
                             </button>
-                            <button id="rpg-encounter-close" class="rpg-encounter-close-btn" title="Close (ends combat)">
+                            <button id="rpg-encounter-close" class="rpg-encounter-close-btn" title="${i18n.getTranslation('encounter.ui.closeTitle') || 'Close (ends combat)'}">
                                 <i class="fa-solid fa-times"></i>
                             </button>
                         </div>
@@ -316,7 +316,7 @@ export class EncounterModal {
                     <div class="rpg-encounter-content">
                         <div id="rpg-encounter-loading" class="rpg-encounter-loading">
                             <i class="fa-solid fa-spinner fa-spin"></i>
-                            <p>Initializing combat...</p>
+                            <p>${i18n.getTranslation('encounter.ui.initializingCombat') || 'Initializing combat...'}</p>
                         </div>
                         <div id="rpg-encounter-main" class="rpg-encounter-main" style="display: none;">
                             <!-- Combat UI will be rendered here -->
@@ -331,20 +331,20 @@ export class EncounterModal {
 
         // Add event listeners
         this.modal.querySelector('#rpg-encounter-conclude').addEventListener('click', () => {
-            if (confirm('Conclude this encounter early and generate a summary?')) {
+            if (confirm(i18n.getTranslation('encounter.ui.confirmConcludeEarly') || 'Conclude this encounter early and generate a summary?')) {
                 this.concludeEncounter();
             }
         });
 
         this.modal.querySelector('#rpg-encounter-close').addEventListener('click', () => {
-            if (confirm('Are you sure you want to end this combat encounter?')) {
+            if (confirm(i18n.getTranslation('encounter.ui.confirmEndCombat') || 'Are you sure you want to end this combat encounter?')) {
                 this.close();
             }
         });
 
         // Close on overlay click
         this.modal.querySelector('.rpg-encounter-overlay').addEventListener('click', () => {
-            if (confirm('Are you sure you want to end this combat encounter?')) {
+            if (confirm(i18n.getTranslation('encounter.ui.confirmEndCombat') || 'Are you sure you want to end this combat encounter?')) {
                 this.close();
             }
         });
@@ -368,12 +368,12 @@ export class EncounterModal {
             <div class="rpg-encounter-battlefield">
                 <!-- Environment -->
                 <div class="rpg-encounter-environment">
-                    <p><i class="fa-solid fa-mountain"></i> ${combatData.environment || 'Battle Arena'}</p>
+                    <p><i class="fa-solid fa-mountain"></i> ${combatData.environment || i18n.getTranslation('encounter.ui.environment.default') || 'Battle Arena'}</p>
                 </div>
 
                 <!-- Enemies Section -->
                 <div class="rpg-encounter-section">
-                    <h3><i class="fa-solid fa-skull"></i> Enemies</h3>
+                    <h3><i class="fa-solid fa-skull"></i> ${i18n.getTranslation('encounter.ui.enemiesTitle') || 'Enemies'}</h3>
                     <div class="rpg-encounter-enemies">
                         ${this.renderEnemies(combatData.enemies)}
                     </div>
@@ -381,7 +381,7 @@ export class EncounterModal {
 
                 <!-- Party Section -->
                 <div class="rpg-encounter-section">
-                    <h3><i class="fa-solid fa-users"></i> Party</h3>
+                    <h3><i class="fa-solid fa-users"></i> ${i18n.getTranslation('encounter.ui.partyTitle') || 'Party'}</h3>
                     <div class="rpg-encounter-party">
                         ${this.renderParty(combatData.party)}
                     </div>
@@ -389,10 +389,10 @@ export class EncounterModal {
 
                 <!-- Combat Log -->
                 <div class="rpg-encounter-log-section">
-                    <h3><i class="fa-solid fa-scroll"></i> Combat Log</h3>
+                    <h3><i class="fa-solid fa-scroll"></i> ${i18n.getTranslation('encounter.ui.combatLog') || 'Combat Log'}</h3>
                     <div id="rpg-encounter-log" class="rpg-encounter-log">
                         <div class="rpg-encounter-log-entry">
-                            <em>Combat begins!</em>
+                            <em>${i18n.getTranslation('encounter.ui.combatBegins') || 'Combat begins!'}</em>
                         </div>
                     </div>
                 </div>
@@ -420,7 +420,7 @@ export class EncounterModal {
 
             // Try to find avatar for enemy (they might be a character from the chat or Present Characters)
             const avatarUrl = this.getCharacterAvatar(enemy.name);
-            const sprite = enemy.sprite || '👹';
+            const sprite = enemy.sprite || i18n.getTranslation('encounter.ui.enemyDefaultEmoji') || '👹';
 
             // Fallback SVG if no avatar found
             const fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NjY2NjYyIgb3BhY2l0eT0iMC4zIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjNjY2IiBmb250LXNpemU9IjQwIj4/PC90ZXh0Pjwvc3ZnPg==';
@@ -434,7 +434,7 @@ export class EncounterModal {
                         <h4>${enemy.name}</h4>
                         <div class="rpg-encounter-hp-bar">
                             <div class="rpg-encounter-hp-fill" style="width: ${hpPercent}%"></div>
-                            <span class="rpg-encounter-hp-text">${enemy.hp}/${enemy.maxHp} HP</span>
+                            <span class="rpg-encounter-hp-text">${enemy.hp}/${enemy.maxHp}${i18n.getTranslation('encounter.ui.hpSuffix') || ' HP'}</span>
                         </div>
                         ${enemy.statuses && enemy.statuses.length > 0 ? `
                             <div class="rpg-encounter-statuses">
@@ -481,10 +481,10 @@ export class EncounterModal {
                         <img src="${avatarUrl || fallbackSvg}" alt="${member.name}" onerror="this.src='${fallbackSvg}'">
                     </div>
                     <div class="rpg-encounter-card-info">
-                        <h4>${member.name} ${member.isPlayer ? '(You)' : ''}</h4>
+                        <h4>${member.name} ${member.isPlayer ? i18n.getTranslation('encounter.ui.playerSuffix') || '(You)' : ''}</h4>
                         <div class="rpg-encounter-hp-bar">
                             <div class="rpg-encounter-hp-fill rpg-encounter-hp-party" style="width: ${hpPercent}%"></div>
-                            <span class="rpg-encounter-hp-text">${member.hp}/${member.maxHp} HP</span>
+                            <span class="rpg-encounter-hp-text">${member.hp}/${member.maxHp}${i18n.getTranslation('encounter.ui.hpSuffix') || ' HP'}</span>
                         </div>                        ${member.statuses && member.statuses.length > 0 ? `
                             <div class="rpg-encounter-statuses">
                                 ${member.statuses.map(status => `<span class="rpg-encounter-status" title="${status.name}">${status.emoji}</span>`).join('')}
@@ -561,18 +561,18 @@ export class EncounterModal {
                 targetOptions = `
                     <div class="rpg-target-option" data-target="all-enemies">
                         <div class="rpg-target-icon">💥</div>
-                        <div class="rpg-target-name">All Enemies</div>
-                        <div class="rpg-target-desc">Area of Effect</div>
+                        <div class="rpg-target-name">${i18n.getTranslation('encounter.ui.allEnemies') || 'All Enemies'}</div>
+                        <div class="rpg-target-desc">${i18n.getTranslation('encounter.ui.areaOfEffect') || 'Area of Effect'}</div>
                     </div>
                 `;
             } else if (attackType === 'both') {
                 targetOptions = `
                     <div class="rpg-target-option" data-target="all-enemies">
                         <div class="rpg-target-icon">💥</div>
-                        <div class="rpg-target-name">All Enemies</div>
-                        <div class="rpg-target-desc">Area of Effect</div>
+                        <div class="rpg-target-name">${i18n.getTranslation('encounter.ui.allEnemies') || 'All Enemies'}</div>
+                        <div class="rpg-target-desc">${i18n.getTranslation('encounter.ui.areaOfEffect') || 'Area of Effect'}</div>
                     </div>
-                    <div class="rpg-target-divider">OR</div>
+                    <div class="rpg-target-divider">${i18n.getTranslation('encounter.ui.or') || 'OR'}</div>
                 `;
             }
 
@@ -585,7 +585,7 @@ export class EncounterModal {
                             <div class="rpg-target-option" data-target="${enemy.name}" data-target-type="enemy" data-target-index="${index}">
                                 <div class="rpg-target-icon">${enemy.sprite || '👹'}</div>
                                 <div class="rpg-target-name">${enemy.name}</div>
-                                <div class="rpg-target-hp">${enemy.hp}/${enemy.maxHp} HP</div>
+                                <div class="rpg-target-hp">${enemy.hp}/${enemy.maxHp}${i18n.getTranslation('encounter.ui.hpSuffix') || ' HP'}</div>
                             </div>
                         `;
                     }
@@ -594,7 +594,7 @@ export class EncounterModal {
                 // Add party members (for heals/buffs)
                 combatStats.party.forEach((member, index) => {
                     if (member.hp > 0) {
-                        const isPlayer = member.isPlayer ? ' (You)' : '';
+                        const isPlayer = member.isPlayer ? i18n.getTranslation('encounter.ui.playerSuffix') || ' (You)' : '';
                         // Get avatar for party member
                         let avatarIcon = '✨';
                         if (member.isPlayer && user_avatar) {
@@ -609,7 +609,7 @@ export class EncounterModal {
                             <div class="rpg-target-option rpg-target-ally" data-target="${member.name}" data-target-type="party" data-target-index="${index}">
                                 <div class="rpg-target-icon">${avatarIcon}</div>
                                 <div class="rpg-target-name">${member.name}${isPlayer}</div>
-                                <div class="rpg-target-hp">${member.hp}/${member.maxHp} HP</div>
+                                <div class="rpg-target-hp">${member.hp}/${member.maxHp}${i18n.getTranslation('encounter.ui.hpSuffix') || ' HP'}</div>
                             </div>
                         `;
                     }
@@ -618,11 +618,11 @@ export class EncounterModal {
 
             targetModal.innerHTML = `
                 <div class="rpg-target-selection-modal">
-                    <h3><i class="fa-solid fa-crosshairs"></i> Select Target</h3>
+                    <h3><i class="fa-solid fa-crosshairs"></i> ${i18n.getTranslation('encounter.ui.selectTarget') || 'Select Target'}</h3>
                     <div class="rpg-target-list">
                         ${targetOptions}
                     </div>
-                    <button class="rpg-target-cancel">Cancel</button>
+                    <button class="rpg-target-cancel">${i18n.getTranslation('global.cancel') || 'Cancel'}</button>
                 </div>
             `;
 
@@ -661,7 +661,7 @@ export class EncounterModal {
     renderPlayerControls(party, playerActions = null) {
         const player = party.find(m => m.isPlayer);
         if (!player || player.hp <= 0) {
-            return '<div class="rpg-encounter-controls"><p class="rpg-encounter-defeated">You have been defeated...</p></div>';
+            return '<div class="rpg-encounter-controls"><p class="rpg-encounter-defeated">' + (i18n.getTranslation('encounter.ui.youHaveBeenDefeated') || 'You have been defeated...') + '</p></div>';
         }
 
         // Use playerActions if provided, otherwise fall back to player data
@@ -670,11 +670,11 @@ export class EncounterModal {
 
         return `
             <div class="rpg-encounter-controls">
-                <h3><i class="fa-solid fa-hand-fist"></i> Your Actions</h3>
+                <h3><i class="fa-solid fa-hand-fist"></i> ${i18n.getTranslation('encounter.ui.yourActions') || 'Your Actions'}</h3>
 
                 <div class="rpg-encounter-action-buttons">
                     <div class="rpg-encounter-button-group">
-                        <h4>Attacks</h4>
+                        <h4>${i18n.getTranslation('encounter.ui.attacks') || 'Attacks'}</h4>
                         ${attacks.map(attack => {
                             // Support both old string format and new object format
                             const attackName = typeof attack === 'string' ? attack : attack.name;
@@ -686,7 +686,7 @@ export class EncounterModal {
                                     data-action="attack"
                                     data-value="${attackName}"
                                     data-attack-type="${attackType}"
-                                    title="${attackType === 'AoE' ? 'Area of Effect' : attackType === 'both' ? 'Single or AoE' : 'Single Target'}">
+                                    title="${attackType === 'AoE' ? i18n.getTranslation('encounter.ui.attackType.aoe') || 'Area of Effect' : attackType === 'both' ? i18n.getTranslation('encounter.ui.attackType.both') || 'Single or AoE' : i18n.getTranslation('encounter.ui.attackType.single') || 'Single Target'}">
                                 <i class="fa-solid fa-sword"></i> ${attackName} ${typeIcon}
                             </button>
                             `;
@@ -695,7 +695,7 @@ export class EncounterModal {
 
                     ${items && items.length > 0 ? `
                         <div class="rpg-encounter-button-group">
-                            <h4>Items</h4>
+                            <h4>${i18n.getTranslation('encounter.ui.items') || 'Items'}</h4>
                             ${items.map(item => `
                                 <button class="rpg-encounter-action-btn rpg-encounter-item-btn" data-action="item" data-value="${item}">
                                     <i class="fa-solid fa-flask"></i> ${item}
@@ -706,11 +706,11 @@ export class EncounterModal {
                 </div>
 
                 <div class="rpg-encounter-custom-action">
-                    <h4>Custom Action</h4>
+                    <h4>${i18n.getTranslation('encounter.ui.customAction') || 'Custom Action'}</h4>
                     <div class="rpg-encounter-input-group">
-                        <input type="text" id="rpg-encounter-custom-input" placeholder="Describe what you want to do..." />
+                        <input type="text" id="rpg-encounter-custom-input" placeholder="${i18n.getTranslation('encounter.ui.customActionPlaceholder') || 'Describe what you want to do...'}" />
                         <button id="rpg-encounter-custom-submit" class="rpg-encounter-submit-btn">
-                            <i class="fa-solid fa-paper-plane"></i> Submit
+                            <i class="fa-solid fa-paper-plane"></i> ${i18n.getTranslation('encounter.ui.submit') || 'Submit'}
                         </button>
                     </div>
                 </div>
@@ -746,15 +746,15 @@ export class EncounterModal {
                     if (!target) return;
 
                     if (target === 'all-enemies') {
-                        actionText = `${userName} uses ${value} targeting all enemies!`;
+                        actionText = `${userName} uses ${value}${i18n.getTranslation('encounter.ui.targetingAllEnemies') || ' targeting all enemies!'}`;
                     } else {
-                        actionText = `${userName} uses ${value} on ${target}!`;
+                        actionText = `${userName} uses ${value}${i18n.getTranslation('encounter.ui.on') || ' on '}${target}!`;
                     }
                 } else if (actionType === 'item') {
                     const target = await this.showTargetSelection('single-target', currentEncounter.combatStats);
                     if (!target) return;
 
-                    actionText = `${userName} uses ${value} on ${target}!`;
+                    actionText = `${userName} uses ${value}${i18n.getTranslation('encounter.ui.on') || ' on '}${target}!`;
                 }
 
                 await this.processCombatAction(actionText);
@@ -809,7 +809,7 @@ export class EncounterModal {
             });
 
             // Add action to log
-            this.addToLog(`You: ${action}`, 'player-action');
+            this.addToLog(`${i18n.getTranslation('encounter.ui.youPrefix') || 'You: '}${action}`, 'player-action');
 
             // Build and send combat action prompt
             const actionPrompt = await buildCombatActionPrompt(action, currentEncounter.combatStats);
@@ -823,7 +823,7 @@ export class EncounterModal {
             });
 
             if (!response) {
-                this.showErrorWithRegenerate('No response received from AI. The model may be unavailable.');
+                this.showErrorWithRegenerate(i18n.getTranslation('encounter.ui.error.noResponse') || 'No response received from AI. The model may be unavailable.');
                 return;
             }
 
@@ -831,7 +831,7 @@ export class EncounterModal {
             const result = parseEncounterJSON(response);
 
             if (!result || !result.combatStats) {
-                this.showErrorWithRegenerate('Invalid JSON format detected. The AI returned malformed data. Ensure the Max Response Length is set to at least 2048 tokens, otherwise the model might run out of tokens and produce unfinished structures.');
+                this.showErrorWithRegenerate(i18n.getTranslation('encounter.ui.error.invalidJsonFormat') || 'Invalid JSON format detected. The AI returned malformed data. Ensure the Max Response Length is set to at least 2048 tokens, otherwise the model might run out of tokens and produce unfinished structures.');
                 return;
             }
 
@@ -899,7 +899,7 @@ export class EncounterModal {
 
         } catch (error) {
             console.error('[RPG Companion] Error processing combat action:', error);
-            this.showErrorWithRegenerate(`Error processing action: ${error.message}`);
+            this.showErrorWithRegenerate(`${i18n.getTranslation('encounter.ui.error.errorProcessingAction') || 'Error processing action:'} ${error.message}`);
 
             // Re-enable buttons
             this.modal.querySelectorAll('.rpg-encounter-action-btn, #rpg-encounter-custom-submit').forEach(btn => {
@@ -959,7 +959,7 @@ export class EncounterModal {
 
         if (player && player.hp <= 0) {
             if (controlsContainer) {
-                controlsContainer.innerHTML = '<p class="rpg-encounter-defeated">You have been defeated...</p>';
+                controlsContainer.innerHTML = '<p class="rpg-encounter-defeated">' + (i18n.getTranslation('encounter.ui.youHaveBeenDefeated') || 'You have been defeated...') + '</p>';
             }
         } else if (currentEncounter.playerActions && controlsContainer) {
             // Check if actions have changed by comparing with previous state
@@ -1205,17 +1205,25 @@ export class EncounterModal {
             interrupted: '#888'
         };
 
+        const resultTexts = {
+            victory: i18n.getTranslation('encounter.ui.result.victory') || 'Victory',
+            defeat: i18n.getTranslation('encounter.ui.result.defeat') || 'Defeat',
+            fled: i18n.getTranslation('encounter.ui.result.fled') || 'Fled',
+            interrupted: i18n.getTranslation('encounter.ui.result.interrupted') || 'Interrupted'
+        };
+
         const icon = resultIcons[result] || 'fa-flag-checkered';
         const color = resultColors[result] || '#888';
+        const text = resultTexts[result] || result;
 
         mainContent.innerHTML = `
             <div class="rpg-encounter-over" style="text-align: center; padding: 40px 20px;">
                 <i class="fa-solid ${icon}" style="font-size: 72px; color: ${color}; margin-bottom: 24px;"></i>
-                <h2 style="font-size: 32px; margin-bottom: 16px; text-transform: uppercase;">${result}</h2>
-                <p style="font-size: 18px; margin-bottom: 32px; opacity: 0.8;">Generating combat summary...</p>
+                <h2 style="font-size: 32px; margin-bottom: 16px; text-transform: uppercase;">${text}</h2>
+                <p style="font-size: 18px; margin-bottom: 32px; opacity: 0.8;">${i18n.getTranslation('encounter.ui.generatingCombatSummary') || 'Generating combat summary...'}</p>
                 <div class="rpg-encounter-loading" style="display: flex; justify-content: center; align-items: center; gap: 12px;">
                     <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px;"></i>
-                    <span>Please wait...</span>
+                    <span>${i18n.getTranslation('encounter.ui.pleaseWait') || 'Please wait...'}</span>
                 </div>
             </div>
         `;
@@ -1234,12 +1242,13 @@ export class EncounterModal {
         if (!overScreen) return;
 
         if (success) {
-            overScreen.querySelector('p').textContent = speakerName
-                ? `Combat summary has been added to the chat by ${speakerName}.`
-                : 'Combat summary has been added to the chat.';
+            const message = speakerName
+                ? (i18n.getTranslation('encounter.ui.combatSummaryAddedBy') || 'Combat summary has been added to the chat by {speakerName}.').replace('{speakerName}', speakerName)
+                : (i18n.getTranslation('encounter.ui.combatSummaryAdded') || 'Combat summary has been added to the chat.');
+            overScreen.querySelector('p').textContent = message;
             overScreen.querySelector('.rpg-encounter-loading').innerHTML = `
                 <button id="rpg-encounter-close-final" class="rpg-encounter-submit-btn" style="font-size: 18px; padding: 12px 24px;">
-                    <i class="fa-solid fa-check"></i> Close Combat Window
+                    <i class="fa-solid fa-check"></i> ${i18n.getTranslation('encounter.ui.closeCombatWindow') || 'Close Combat Window'}
                 </button>
             `;
 
@@ -1251,11 +1260,11 @@ export class EncounterModal {
                 });
             }
         } else {
-            overScreen.querySelector('p').textContent = 'Error generating combat summary.';
+            overScreen.querySelector('p').textContent = i18n.getTranslation('encounter.ui.errorGeneratingCombatSummary') || 'Error generating combat summary.';
             overScreen.querySelector('.rpg-encounter-loading').innerHTML = `
-                <p style="color: #e94560;">Failed to create summary. You can close this window.</p>
+                <p style="color: #e94560;">${i18n.getTranslation('encounter.ui.failedToCreateSummary') || 'Failed to create summary. You can close this window.'}</p>
                 <button id="rpg-encounter-close-final" class="rpg-encounter-submit-btn" style="font-size: 18px; padding: 12px 24px; margin-top: 16px;">
-                    <i class="fa-solid fa-times"></i> Close Combat Window
+                    <i class="fa-solid fa-times"></i> ${i18n.getTranslation('encounter.ui.closeCombatWindow') || 'Close Combat Window'}
                 </button>
             `;
 
@@ -1321,14 +1330,14 @@ export class EncounterModal {
             loadingContent.innerHTML = `
                 <div class="rpg-encounter-error-box">
                     <i class="fa-solid fa-exclamation-triangle" style="color: #e94560; font-size: 48px; margin-bottom: 1em;"></i>
-                    <p style="color: #e94560; font-weight: bold; font-size: 1.2em; margin: 0 0 0.5em 0;">Wrong Format Detected</p>
+                    <p style="color: #e94560; font-weight: bold; font-size: 1.2em; margin: 0 0 0.5em 0;">${i18n.getTranslation('encounter.ui.wrongFormatDetected') || 'Wrong Format Detected'}</p>
                     <p style="color: var(--rpg-text, #ccc); margin: 0 0 1.5em 0; max-width: 500px;">${message}</p>
                     <div style="display: flex; gap: 1em;">
                         <button id="rpg-error-regenerate" class="rpg-btn rpg-btn-primary">
-                            <i class="fa-solid fa-rotate-right"></i> Regenerate
+                            <i class="fa-solid fa-rotate-right"></i> ${i18n.getTranslation('encounter.ui.regenerate') || 'Regenerate'}
                         </button>
                         <button id="rpg-error-close" class="rpg-btn rpg-btn-secondary">
-                            <i class="fa-solid fa-times"></i> Close
+                            <i class="fa-solid fa-times"></i> ${i18n.getTranslation('global.close') || 'Close'}
                         </button>
                     </div>
                 </div>

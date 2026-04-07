@@ -1,6 +1,7 @@
 {
     "settings.language.label": "Язык",
     "settings.language.option.en": "English",
+    "settings.language.option.zh-cn": "简体中文",
     "settings.language.option.zh-tw": "繁體中文",
     "settings.language.option.ru": "Русский",
     "settings.extensionEnabled": "Включить RPG Companion",
