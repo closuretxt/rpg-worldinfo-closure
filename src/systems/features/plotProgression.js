@@ -7,6 +7,7 @@ import { togglePlotButtons } from '../ui/layout.js';
 import { extensionSettings, setIsPlotProgression } from '../../core/state.js';
 import { DEFAULT_HTML_PROMPT, DEFAULT_DIALOGUE_COLORING_PROMPT, DEFAULT_DECEPTION_PROMPT, DEFAULT_CYOA_PROMPT } from '../generation/promptBuilder.js';
 import { Generate } from '../../../../../../../script.js';
+import { i18n } from '../../core/i18n.js';
 
 /**
  * Sets up the plot progression buttons inside the send form area.
@@ -34,8 +35,8 @@ export function setupPlotButtons(handlePlotClick, handleEncounterClick) {
                 font-size: 13px;
                 cursor: pointer;
                 margin: 0 2px;
-            " tabindex="0" role="button" title="Generate a random plot twist or event">
-                <i class="fa-solid fa-dice"></i>&nbsp;<span class="rpg-btn-text">Randomized Plot</span>
+            " tabindex="0" role="button" title="${i18n.getTranslation('plotProgression.tooltips.randomizedPlot') || 'Generate a random plot twist or event'}">
+                <i class="fa-solid fa-dice"></i>&nbsp;<span class="rpg-btn-text">${i18n.getTranslation('plotProgression.buttons.randomizedPlot') || 'Randomized Plot'}</span>
             </button>
             <button id="rpg-plot-natural" class="menu_button interactable" style="
                 background-color: #4a90e2;
@@ -46,8 +47,8 @@ export function setupPlotButtons(handlePlotClick, handleEncounterClick) {
                 font-size: 13px;
                 cursor: pointer;
                 margin: 0 2px;
-            " tabindex="0" role="button" title="Continue the story naturally without twists">
-                <i class="fa-solid fa-forward"></i>&nbsp;<span class="rpg-btn-text">Natural Plot</span>
+            " tabindex="0" role="button" title="${i18n.getTranslation('plotProgression.tooltips.naturalPlot') || 'Continue the story naturally without twists'}">
+                <i class="fa-solid fa-forward"></i>&nbsp;<span class="rpg-btn-text">${i18n.getTranslation('plotProgression.buttons.naturalPlot') || 'Natural Plot'}</span>
             </button>
             <button id="rpg-encounter-button" class="menu_button interactable" style="
                 background-color: #cc3333;
@@ -58,8 +59,8 @@ export function setupPlotButtons(handlePlotClick, handleEncounterClick) {
                 font-size: 13px;
                 cursor: pointer;
                 margin: 0 2px;
-            " tabindex="0" role="button" title="Enter combat encounter">
-                <i class="fa-solid fa-fire"></i>&nbsp;<span class="rpg-btn-text">Enter Encounter</span>
+            " tabindex="0" role="button" title="${i18n.getTranslation('plotProgression.tooltips.enterEncounter') || 'Enter combat encounter'}">
+                <i class="fa-solid fa-fire"></i>&nbsp;<span class="rpg-btn-text">${i18n.getTranslation('plotProgression.buttons.enterEncounter') || 'Enter Encounter'}</span>
             </button>
         </span>
     `;

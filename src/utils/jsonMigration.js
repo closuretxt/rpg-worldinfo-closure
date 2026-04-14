@@ -102,7 +102,7 @@ export function migrateUserStatsToJSON(textData) {
         const statMatch = trimmed.match(/^-\s*([^:]+):\s*(\d+)%/);
         if (statMatch) {
             const name = statMatch[1].trim();
-            const id = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const id = name.toLowerCase().replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_]/gu, '');
             result.stats.push({
                 id: id,
                 name: name,

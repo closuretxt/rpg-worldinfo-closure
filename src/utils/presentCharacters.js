@@ -23,7 +23,7 @@ export function extractFieldValue(fieldValue) {
 export function toSnakeCase(name) {
     return name
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/[^\p{L}\p{N}]+/gu, '_')
         .replace(/^_+|_+$/g, '');
 }
 
@@ -43,7 +43,11 @@ export function namesMatch(cardName, aiName) {
 }
 
 export function isPresentCharactersEnabled() {
-    return !!(extensionSettings.showCharacterThoughts || extensionSettings.showAlternatePresentCharactersPanel);
+    return !!(
+        extensionSettings.showCharacterThoughts
+        || extensionSettings.showAlternatePresentCharactersPanel
+        || extensionSettings.showThoughtsInChat
+    );
 }
 
 export function getPresentCharactersTrackerData({ useCommittedFallback = true } = {}) {

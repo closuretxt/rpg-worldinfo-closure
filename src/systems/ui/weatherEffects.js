@@ -129,6 +129,16 @@ export const WEATHER_PATTERNS_BY_LANGUAGE = {
         { id: "sunny", patterns: [ "солнечно", "ясно", "ярко", "ясное утро", "ясный день" ] },
         { id: "none", patterns: [ "облачно", "пасмурно", "в помещении", "внутри" ] },
     ],
+    "zh-cn": [
+        { id: "blizzard", patterns: ["暴风雪"] },
+        { id: "storm", patterns: ["风暴", "雷暴", "雷电"] },
+        { id: "wind", patterns: ["风", "微风", "阵风", "大风"] },
+        { id: "snow", patterns: ["雪", "小雪"] },
+        { id: "rain", patterns: ["雨", "毛毛雨", "阵雨"] },
+        { id: "mist", patterns: ["薄雾", "雾", "霾"] },
+        { id: "sunny", patterns: ["晴朗", "晴天", "阳光明媚"] },
+        { id: "none", patterns: ["多云", "阴天", "室内", "屋内"] },
+    ],
 }
 
 /**

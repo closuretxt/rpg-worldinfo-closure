@@ -144,7 +144,7 @@ export function updateCollapseToggleIcon() {
  */
 export function setupCollapseToggle() {
     const $collapseToggle = $('#rpg-collapse-toggle');
-    $collapseToggle.attr('title', i18n.getTranslation('template.mainPanel.collapseExpand'));
+    $collapseToggle.attr('title', i18n.getTranslation('template.mainPanel.collapseExpand') || 'Collapse/Expand panel');
     const $panel = $('#rpg-companion-panel');
     const $icon = $collapseToggle.find('i');
 

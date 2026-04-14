@@ -34,7 +34,7 @@ function toFieldKey(name) {
     const baseName = name.replace(/\s*\(.*\)\s*$/, '').trim();
     return baseName
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/[^\p{L}\p{N}]+/gu, '_')
         .replace(/^_+|_+$/g, '');
 }
 
@@ -213,7 +213,7 @@ export function renderUserStats() {
 
     if (!lastGeneratedData.userStats && !committedTrackerData.userStats) {
         // Always render to the #rpg-user-stats container (mobile layout just moves it around in DOM)
-        $userStatsContainer.html('<div class="rpg-inventory-empty">No statuses generated yet</div>');
+        $userStatsContainer.html('<div class="rpg-inventory-empty">' + (i18n.getTranslation('userStats.empty') || 'No statuses generated yet') + '</div>');
         return;
     }
 
@@ -274,7 +274,7 @@ export function renderUserStats() {
     // Check if stats bars section is locked
     const isStatsLocked = isItemLocked('userStats', 'stats');
     const lockIcon = isStatsLocked ? '🔒' : '🔓';
-    const lockTitle = isStatsLocked ? i18n.getTranslation('userStats.statsLocked') : i18n.getTranslation('userStats.statsUnlocked');
+    const lockTitle = isStatsLocked ? (i18n.getTranslation('userStats.statsLocked') || 'Stats locked') : (i18n.getTranslation('userStats.statsUnlocked') || 'Stats unlocked');
     const lockedClass = isStatsLocked ? ' locked' : '';
 
     let html = '<div class="rpg-stats-content">';
@@ -287,8 +287,8 @@ export function renderUserStats() {
             <img src="${userPortrait}" alt="${userName}" class="rpg-user-portrait" onerror="this.style.opacity='0.5';this.onerror=null;" />
             <span class="rpg-user-name">${userName}</span>
             ${showLevel ? `<span style="opacity: 0.5;">|</span>
-            <span class="rpg-level-label">${i18n.getTranslation('userStats.level')}</span>
-            <span class="rpg-level-value rpg-editable" contenteditable="true" data-field="level" title="${i18n.getTranslation('userStats.clickToEditLevel')}">${extensionSettings.level}</span>` : ''}
+            <span class="rpg-level-label">${i18n.getTranslation('userStats.level') || 'Level'}</span>
+            <span class="rpg-level-value rpg-editable" contenteditable="true" data-field="level" title="${i18n.getTranslation('userStats.clickToEditLevel') || 'Click to edit level'}">${extensionSettings.level}</span>` : ''}
         </div>
     `;
 
@@ -321,11 +321,11 @@ export function renderUserStats() {
 
         html += `
             <div class="rpg-stat-row">
-                <span class="rpg-stat-label rpg-editable-stat-name" contenteditable="true" data-field="${stat.id}" title="${i18n.getTranslation('userStats.clickToEditStatName')}">${stat.name}:</span>
+                <span class="rpg-stat-label rpg-editable-stat-name" contenteditable="true" data-field="${stat.id}" title="${i18n.getTranslation('userStats.clickToEditStatName') || 'Click to edit stat name'}">${stat.name}:</span>
                 <div class="rpg-stat-bar" style="background: ${gradient}">
                     <div class="rpg-stat-fill" style="width: ${100 - percentage}%"></div>
                 </div>
-                <span class="rpg-stat-value rpg-editable-stat" contenteditable="true" data-field="${stat.id}" data-max="${maxValue}" data-mode="${displayMode}" title="${i18n.getTranslation('userStats.clickToEditStatValue')}">${displayValue}</span>
+                <span class="rpg-stat-value rpg-editable-stat" contenteditable="true" data-field="${stat.id}" data-max="${maxValue}" data-mode="${displayMode}" title="${i18n.getTranslation('userStats.clickToEditStatValue') || 'Click to edit stat value'}">${displayValue}</span>
             </div>
         `;
     }
@@ -335,7 +335,7 @@ export function renderUserStats() {
     if (config.statusSection.enabled) {
         const isMoodLocked = isItemLocked('userStats', 'status');
         const moodLockIcon = isMoodLocked ? '🔒' : '🔓';
-        const moodLockTitle = isMoodLocked ? i18n.getTranslation('userStats.moodLocked') : i18n.getTranslation('userStats.moodUnlocked');
+        const moodLockTitle = isMoodLocked ? (i18n.getTranslation('userStats.moodLocked') || 'Mood locked') : (i18n.getTranslation('userStats.moodUnlocked') || 'Mood unlocked');
         const moodLockedClass = isMoodLocked ? ' locked' : '';
         html += '<div class="rpg-mood">';
         if (showLockIcons) {
@@ -343,7 +343,7 @@ export function renderUserStats() {
         }
 
         if (config.statusSection.showMoodEmoji) {
-            html += `<div class="rpg-mood-emoji rpg-editable" contenteditable="true" data-field="mood" title="${i18n.getTranslation('userStats.clickToEditEmoji')}">${stats.mood}</div>`;
+            html += `<div class="rpg-mood-emoji rpg-editable" contenteditable="true" data-field="mood" title="${i18n.getTranslation('userStats.clickToEditEmoji') || 'Click to edit emoji'}">${stats.mood}</div>`;
         }
 
         // Render custom status fields
@@ -358,7 +358,7 @@ export function renderUserStats() {
                     // Strip brackets if present (from JSON array format)
                     fieldValue = fieldValue.replace(/^\[|\]$/g, '').trim();
                 }
-                html += `<div class="rpg-mood-conditions rpg-editable" contenteditable="true" data-field="${fieldKey}" title="Click to edit ${fieldName}">${fieldValue}</div>`;
+                html += `<div class="rpg-mood-conditions rpg-editable" contenteditable="true" data-field="${fieldKey}" title="${i18n.getTranslation('userStats.clickToEdit') || 'Click to edit'} ${fieldName}">${fieldValue}</div>`;
             }
         }
 
@@ -369,7 +369,7 @@ export function renderUserStats() {
     if (config.skillsSection.enabled) {
         const isSkillsLocked = isItemLocked('userStats', 'skills');
         const skillsLockIcon = isSkillsLocked ? '🔒' : '🔓';
-        const skillsLockTitle = isSkillsLocked ? i18n.getTranslation('userStats.skillsLocked') : i18n.getTranslation('userStats.skillsUnlocked');
+        const skillsLockTitle = isSkillsLocked ? (i18n.getTranslation('userStats.skillsLocked') || 'Skills locked') : (i18n.getTranslation('userStats.skillsUnlocked') || 'Skills unlocked');
         const skillsLockedClass = isSkillsLocked ? ' locked' : '';
         let skillsValue = 'None';
         // Handle JSON array format: [{name: "Art"}, {name: "Coding"}]
@@ -386,7 +386,7 @@ export function renderUserStats() {
         }
         html += `
                 <span class="rpg-skills-label">${config.skillsSection.label}:</span>
-                <div class="rpg-skills-value rpg-editable" contenteditable="true" data-field="skills" title="${i18n.getTranslation('userStats.clickToEditSkills')}">${skillsValue}</div>
+                <div class="rpg-skills-value rpg-editable" contenteditable="true" data-field="skills" title="${i18n.getTranslation('userStats.clickToEditSkills') || 'Click to edit skills'}">${skillsValue}</div>
             </div>
         `;
     }
@@ -595,7 +595,7 @@ export function renderUserStats() {
 
         // Update icon
         const newIcon = !currentlyLocked ? '🔒' : '🔓';
-        const newTitle = !currentlyLocked ? i18n.getTranslation('infoBox.locked') : i18n.getTranslation('infoBox.unlocked');
+        const newTitle = !currentlyLocked ? (i18n.getTranslation('infoBox.locked') || 'Locked') : (i18n.getTranslation('infoBox.unlocked') || 'Unlocked');
         $icon.text(newIcon);
         $icon.attr('title', newTitle);
 

@@ -18,7 +18,8 @@ import {
     lastActionWasSwipe,
     setIsGenerating,
     setLastActionWasSwipe,
-    $musicPlayerContainer
+    $musicPlayerContainer,
+    getSeparateGenerationId
 } from '../../core/state.js';
 import { saveChatData, setMessageSwipeTrackerData } from '../../core/persistence.js';
 import {
@@ -218,7 +219,7 @@ export async function switchToPreset(presetName) {
  * @param {Function} renderThoughts - UI function to render character thoughts
  * @param {Function} renderInventory - UI function to render inventory
  */
-export async function updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory) {
+export async function updateRPGData(renderUserStats, renderInfoBox, renderThoughts, renderInventory, generationId = null) {
     if (isGenerating) {
         // console.log('[RPG Companion] Already generating, skipping...');
         return;
@@ -262,13 +263,21 @@ export async function updateRPGData(renderUserStats, renderInfoBox, renderThough
             });
         }
 
+        // If a generationId was provided and the counter has since been incremented
+        // (by a deletion or a newer generation), discard this result entirely.
+        // The finally block still runs to restore button state.
+        if (generationId !== null && getSeparateGenerationId() !== generationId) {
+            // console.log('[RPG Companion] ⚠️ Separate generation result discarded — superseded (genId', generationId, '!= current', getSeparateGenerationId(), ')');
+            return;
+        }
+
         if (response) {
             // console.log('[RPG Companion] Raw AI response:', response);
             const parsedData = parseResponse(response);
 
             // Check if parsing completely failed (no tracker data found)
             if (parsedData.parsingFailed) {
-                toastr.error(i18n.getTranslation('errors.parsingError'), '', { timeOut: 5000 });
+                toastr.error(i18n.getTranslation('errors.parsingError') || 'RPG Companion Trackers parsing error! The model returned incorrect format. Consider switching generation model if this persists.', '', { timeOut: 5000 });
             }
 
             // Remove locks from parsed data (JSON format only, text format is unaffected)

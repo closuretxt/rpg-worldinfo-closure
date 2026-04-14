@@ -251,7 +251,7 @@ function applyCharactersLocks(data, lockedItems) {
                     // Use the same conversion as toSnakeCase in thoughts.js
                     const snakeCaseFieldName = fieldName
                         .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '_')
+                        .replace(/[^\p{L}\p{N}]+/gu, '_')
                         .replace(/^_+|_+$/g, '');
 
                     let locked = false;
