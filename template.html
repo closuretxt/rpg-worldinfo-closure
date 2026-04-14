@@ -359,12 +359,48 @@
                 </small>
 
                 <label class="checkbox_label">
+                    <input type="checkbox" id="rpg-toggle-alt-present-characters" />
+                    <span data-i18n-key="template.settingsModal.display.showBelowChatPresentCharacters">Show Below-Chat Present Characters</span>
+                </label>
+                <small style="display: block; margin-left: 24px; margin-top: -8px; color: #888; font-size: 11px;"
+                    data-i18n-key="template.settingsModal.display.showBelowChatPresentCharactersNote">
+                    Display a compact Present Characters panel below the chat.
+                </small>
+
+                <label class="checkbox_label">
+                    <input type="checkbox" id="rpg-toggle-thought-based-expressions" />
+                    <span data-i18n-key="template.settingsModal.display.thoughtBasedExpressions">Thought-Based Expressions</span>
+                </label>
+                <small style="display: block; margin-left: 24px; margin-top: -8px; color: #888; font-size: 11px;"
+                    data-i18n-key="template.settingsModal.display.thoughtBasedExpressionsNote">
+                    Use SillyTavern Character Expressions to classify each present character's thoughts for the below-chat panel. May increase token usage depending on the selected Classifier API.
+                </small>
+
+                <label class="checkbox_label">
+                    <input type="checkbox" id="rpg-toggle-hide-default-expressions" />
+                    <span data-i18n-key="template.settingsModal.display.hideDefaultExpressionDisplay">Hide Default Expression Display</span>
+                </label>
+                <small style="display: block; margin-left: 24px; margin-top: -8px; color: #888; font-size: 11px;"
+                    data-i18n-key="template.settingsModal.display.hideDefaultExpressionDisplayNote">
+                    Hide SillyTavern's built-in Character Expressions display.
+                </small>
+
+                <label class="checkbox_label">
                     <input type="checkbox" id="rpg-toggle-thoughts-in-chat" />
                     <span data-i18n-key="template.settingsModal.display.showThoughtsInChat">Show Thoughts</span>
                 </label>
                 <small style="display: block; margin-left: 24px; margin-top: -8px; color: #888; font-size: 11px;"
                     data-i18n-key="template.settingsModal.display.showThoughtsInChatNote">
                     Display character thoughts as overlay bubbles next to their messages.
+                </small>
+
+                <label class="checkbox_label">
+                    <input type="checkbox" id="rpg-toggle-inline-thoughts" />
+                    <span data-i18n-key="template.settingsModal.display.showInlineThoughts">Show Thoughts Below Message Text</span>
+                </label>
+                <small style="display: block; margin-left: 24px; margin-top: -8px; color: #888; font-size: 11px;"
+                    data-i18n-key="template.settingsModal.display.showInlineThoughtsNote">
+                    Switch between the default corner thought bubbles and thought cards below the message text.
                 </small>
 
                 <label class="checkbox_label">

@@ -134,6 +134,20 @@ import {
     removeDesktopTabs,
     updateStripWidgets
 } from './src/systems/ui/desktop.js';
+import {
+    removeAlternatePresentCharactersPanel,
+    renderAlternatePresentCharacters
+} from './src/systems/ui/alternatePresentCharacters.js';
+import {
+    initThoughtBasedExpressions,
+    queueThoughtBasedExpressionsUpdate,
+    onThoughtBasedExpressionsSettingChanged,
+    onAlternatePresentCharactersVisibilityChanged,
+    onHideDefaultExpressionDisplaySettingChanged,
+    clearThoughtBasedExpressionsCache,
+    onThoughtBasedExpressionsChatChanged,
+    setThoughtBasedExpressionsRefreshHandler
+} from './src/systems/integration/thoughtBasedExpressions.js';
 
 // Feature modules
 import { setupPlotButtons, sendPlotProgression } from './src/systems/features/plotProgression.js';
@@ -150,8 +164,10 @@ import {
     onMessageSent,
     onMessageReceived,
     onCharacterChanged,
-    onMessageSwiped,
+    onChatLoaded,
     onMessageDeleted,
+    onMessageSwiped,
+    scheduleChatStateRehydration,
     updatePersonaAvatar,
     clearExtensionPrompts,
     onGenerationEnded,
@@ -160,6 +176,10 @@ import {
 
 // Old state variable declarations removed - now imported from core modules
 // (extensionSettings, lastGeneratedData, committedTrackerData, etc. are now in src/core/state.js)
+
+setThoughtBasedExpressionsRefreshHandler(() => {
+    renderAlternatePresentCharacters({ useCommittedFallback: true });
+});
 
 // Utility functions removed - now imported from src/utils/avatars.js
 // (getSafeThumbnailUrl)
@@ -217,6 +237,7 @@ async function addExtensionSettings() {
             clearExtensionPrompts();
             updateChatThoughts(); // Remove thought bubbles
             cleanupCheckpointUI(); // Remove checkpoint buttons and indicators
+            clearThoughtBasedExpressionsCache();
 
             // Disable dynamic weather effects
             toggleDynamicWeather(false);
@@ -226,10 +247,13 @@ async function addExtensionSettings() {
             $('#rpg-mobile-toggle').remove();
             $('#rpg-collapse-toggle').remove();
             $('#rpg-plot-buttons').remove(); // Remove plot buttons
+            removeAlternatePresentCharactersPanel();
         } else if (extensionSettings.enabled && !wasEnabled) {
             // Enabling extension - initialize UI
             await initUI();
             loadChatData(); // Load chat data for current chat
+            scheduleChatStateRehydration();
+            initThoughtBasedExpressions();
             updateChatThoughts(); // Create thought bubbles if data exists
             injectCheckpointButton(); // Re-add checkpoint buttons
             updateAllCheckpointIndicators(); // Update button states
@@ -336,6 +360,26 @@ async function initUI() {
         extensionSettings.showCharacterThoughts = $(this).prop('checked');
         saveSettings();
         updateSectionVisibility();
+        renderThoughts();
+    });
+
+    $('#rpg-toggle-alt-present-characters').on('change', function() {
+        extensionSettings.showAlternatePresentCharactersPanel = $(this).prop('checked');
+        saveSettings();
+        renderThoughts();
+        onAlternatePresentCharactersVisibilityChanged();
+    });
+
+    $('#rpg-toggle-thought-based-expressions').on('change', function() {
+        extensionSettings.enableThoughtBasedExpressions = $(this).prop('checked');
+        saveSettings();
+        onThoughtBasedExpressionsSettingChanged(extensionSettings.enableThoughtBasedExpressions);
+    });
+
+    $('#rpg-toggle-hide-default-expressions').on('change', function() {
+        extensionSettings.hideDefaultExpressionDisplay = $(this).prop('checked');
+        saveSettings();
+        onHideDefaultExpressionDisplaySettingChanged(extensionSettings.hideDefaultExpressionDisplay);
     });
 
     $('#rpg-toggle-inventory').on('change', function() {
@@ -364,6 +408,12 @@ async function initUI() {
     $('#rpg-toggle-thoughts-in-chat').on('change', function() {
         extensionSettings.showThoughtsInChat = $(this).prop('checked');
         // console.log('[RPG Companion] Toggle showThoughtsInChat changed to:', extensionSettings.showThoughtsInChat);
+        saveSettings();
+        updateChatThoughts();
+    });
+
+    $('#rpg-toggle-inline-thoughts').on('change', function() {
+        extensionSettings.thoughtsInChatStyle = $(this).prop('checked') ? 'inline' : 'corner';
         saveSettings();
         updateChatThoughts();
     });
@@ -1066,10 +1116,14 @@ async function initUI() {
     $('#rpg-toggle-user-stats').prop('checked', extensionSettings.showUserStats);
     $('#rpg-toggle-info-box').prop('checked', extensionSettings.showInfoBox);
     $('#rpg-toggle-thoughts').prop('checked', extensionSettings.showCharacterThoughts);
+    $('#rpg-toggle-alt-present-characters').prop('checked', extensionSettings.showAlternatePresentCharactersPanel ?? false);
+    $('#rpg-toggle-thought-based-expressions').prop('checked', extensionSettings.enableThoughtBasedExpressions === true);
+    $('#rpg-toggle-hide-default-expressions').prop('checked', extensionSettings.hideDefaultExpressionDisplay === true);
     $('#rpg-toggle-inventory').prop('checked', extensionSettings.showInventory);
     $('#rpg-toggle-quests').prop('checked', extensionSettings.showQuests);
     $('#rpg-toggle-lock-icons').prop('checked', extensionSettings.showLockIcons ?? true);
     $('#rpg-toggle-thoughts-in-chat').prop('checked', extensionSettings.showThoughtsInChat);
+    $('#rpg-toggle-inline-thoughts').prop('checked', (extensionSettings.thoughtsInChatStyle || 'corner') === 'inline');
     $('#rpg-toggle-html-prompt').prop('checked', extensionSettings.enableHtmlPrompt);
     $('#rpg-toggle-dialogue-coloring').prop('checked', extensionSettings.enableDialogueColoring);
     $('#rpg-toggle-deception').prop('checked', extensionSettings.enableDeceptionSystem ?? false);
@@ -1306,6 +1360,8 @@ jQuery(async () => {
         // Load chat-specific data for current chat
         try {
             loadChatData();
+            scheduleChatStateRehydration();
+            initThoughtBasedExpressions();
             // Initialize FAB widgets and strip widgets with any loaded data
             updateFabWidgets();
             updateStripWidgets();
@@ -1376,10 +1432,68 @@ jQuery(async () => {
                 [event_types.GENERATION_STOPPED]: onGenerationEnded,
                 [event_types.GENERATION_ENDED]: onGenerationEnded,
                 [event_types.CHAT_CHANGED]: [onCharacterChanged, updatePersonaAvatar, restoreCheckpointOnLoad, clearSessionAvatarPrompts],
-                [event_types.MESSAGE_SWIPED]: onMessageSwiped,
+                [event_types.CHAT_LOADED]: onChatLoaded,
                 [event_types.MESSAGE_DELETED]: onMessageDeleted,
+                [event_types.MESSAGE_SWIPE_DELETED]: onMessageDeleted,
+                [event_types.MESSAGE_SWIPED]: onMessageSwiped,
                 [event_types.USER_MESSAGE_RENDERED]: updatePersonaAvatar,
                 [event_types.SETTINGS_UPDATED]: updatePersonaAvatar
+            });
+
+            eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => {
+                if (!extensionSettings.enabled) {
+                    return;
+                }
+
+                const renderedMessage = chat[messageId];
+                if (renderedMessage && !renderedMessage.is_user && !renderedMessage.is_system) {
+                    queueThoughtBasedExpressionsUpdate();
+                }
+            });
+
+            eventSource.on(event_types.MESSAGE_UPDATED, (messageId) => {
+                if (!extensionSettings.enabled) {
+                    return;
+                }
+
+                const updatedMessage = chat[messageId];
+                if (updatedMessage && !updatedMessage.is_user && !updatedMessage.is_system) {
+                    queueThoughtBasedExpressionsUpdate();
+                }
+            });
+
+            eventSource.on(event_types.MESSAGE_SWIPED, (messageIndex) => {
+                if (!extensionSettings.enabled) {
+                    return;
+                }
+
+                const swipedMessage = chat[messageIndex];
+                if (swipedMessage && !swipedMessage.is_user && !swipedMessage.is_system) {
+                    queueThoughtBasedExpressionsUpdate({ immediate: true });
+                }
+            });
+
+            eventSource.on(event_types.CHAT_CHANGED, () => {
+                clearThoughtBasedExpressionsCache();
+                setTimeout(() => onThoughtBasedExpressionsChatChanged(), 0);
+            });
+
+            eventSource.on(event_types.MESSAGE_DELETED, () => {
+                if (!extensionSettings.enabled) {
+                    return;
+                }
+
+                clearThoughtBasedExpressionsCache();
+                setTimeout(() => onThoughtBasedExpressionsChatChanged(), 0);
+            });
+
+            eventSource.on(event_types.MESSAGE_SWIPE_DELETED, () => {
+                if (!extensionSettings.enabled) {
+                    return;
+                }
+
+                clearThoughtBasedExpressionsCache();
+                setTimeout(() => onThoughtBasedExpressionsChatChanged(), 0);
             });
         } catch (error) {
             console.error('[RPG Companion] Event registration failed:', error);

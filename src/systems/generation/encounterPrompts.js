@@ -9,6 +9,7 @@ import { selected_group, getGroupMembers, groups } from '../../../../../../group
 import { extensionSettings, committedTrackerData } from '../../core/state.js';
 import { currentEncounter } from '../features/encounterState.js';
 import { repairJSON } from '../../utils/jsonRepair.js';
+import { isPresentCharactersEnabled } from '../../utils/presentCharacters.js';
 import { buildInventorySummary, generateTrackerInstructions, generateTrackerExample } from './promptBuilder.js';
 import { applyLocks } from './lockManager.js';
 
@@ -709,7 +710,7 @@ export async function buildCombatSummaryPrompt(combatLog, result) {
     summaryMessage += `- Never quote ${userName} directly. Express their actions and dialogue using ONLY indirect speech (e.g., "${userName} swung their sword" or "${userName} asked for help").\n\n`;
 
     // If in Together mode and trackers are enabled, add tracker update instructions
-    if (extensionSettings.generationMode === 'together' && (extensionSettings.showUserStats || extensionSettings.showInfoBox || extensionSettings.showCharacterThoughts)) {
+    if (extensionSettings.generationMode === 'together' && (extensionSettings.showUserStats || extensionSettings.showInfoBox || isPresentCharactersEnabled())) {
         summaryMessage += `\n--- TRACKER UPDATE ---\n\n`;
         summaryMessage += `After the [FIGHT CONCLUDED] summary, update the RPG trackers to reflect ${userName}'s state AFTER the combat encounter. `;
         summaryMessage += `Account for any injuries sustained, resources used, emotional state changes, or other consequences of the battle.\n\n`;

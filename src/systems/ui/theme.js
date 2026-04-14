@@ -4,6 +4,7 @@
  */
 
 import { extensionSettings, $panelContainer } from '../../core/state.js';
+import { syncAlternatePresentCharactersTheme } from './alternatePresentCharacters.js';
 
 /**
  * Converts hex color and opacity percentage to rgba string
@@ -96,6 +97,8 @@ export function applyTheme() {
             $thoughtPanel.attr('data-theme', theme);
         }
     }
+
+    syncAlternatePresentCharactersTheme();
 }
 
 /**
@@ -150,6 +153,8 @@ export function applyCustomTheme() {
     if ($thoughtPanel.length) {
         $thoughtPanel.attr('data-theme', 'custom').css(customStyles);
     }
+
+    syncAlternatePresentCharactersTheme();
 }
 
 /**

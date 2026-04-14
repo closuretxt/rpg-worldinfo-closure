@@ -10,7 +10,7 @@
  * Extension settings - persisted to SillyTavern settings
  */
 export let extensionSettings = {
-    settingsVersion: 4, // Version number for settings migrations (v4 = FAB widgets enabled by default)
+    settingsVersion: 4, // Version number for settings migrations
     enabled: true,
     autoUpdate: false,
     updateDepth: 4, // How many messages to include in the context
@@ -18,9 +18,13 @@ export let extensionSettings = {
     showUserStats: true,
     showInfoBox: true,
     showCharacterThoughts: true,
+    showAlternatePresentCharactersPanel: false,
+    enableThoughtBasedExpressions: false,
+    hideDefaultExpressionDisplay: false,
     showInventory: true, // Show inventory section (v2 system)
     showQuests: true, // Show quests section
     showThoughtsInChat: true, // Show thoughts overlay in chat
+    thoughtsInChatStyle: 'corner', // 'corner' or 'inline'
     narratorMode: false, // Use character card as narrator instead of fixed character references
     customNarratorPrompt: '', // Custom narrator mode prompt text (empty = use default)
     customContextInstructionsPrompt: '', // Custom context instructions prompt text (empty = use default)
@@ -357,6 +361,24 @@ export function getSessionAvatarPrompt(characterName) {
 
 export function clearSessionAvatarPrompts() {
     sessionAvatarPrompts = {};
+}
+
+/**
+ * Per-chat storage for thought-based Character Expressions portraits.
+ * Maps normalized character names to the current below-chat portrait URL.
+ */
+export let thoughtBasedExpressionPortraits = {};
+
+export function setThoughtBasedExpressionPortraits(portraits) {
+    thoughtBasedExpressionPortraits = portraits && typeof portraits === 'object' ? { ...portraits } : {};
+}
+
+export function getThoughtBasedExpressionPortrait(characterName) {
+    return thoughtBasedExpressionPortraits[characterName] || null;
+}
+
+export function clearThoughtBasedExpressionPortraits() {
+    thoughtBasedExpressionPortraits = {};
 }
 
 /**

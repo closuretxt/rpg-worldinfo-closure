@@ -29,10 +29,14 @@ export const defaultSettings = {
     showUserStats: true,
     showInfoBox: true,
     showCharacterThoughts: true,
+    showAlternatePresentCharactersPanel: false,
+    enableThoughtBasedExpressions: false,
+    hideDefaultExpressionDisplay: false,
     showInventory: true, // Show inventory section (v2 system)
     showQuests: true, // Show quests section
     showLockIcons: true, // Show lock/unlock icons on tracker items
     showThoughtsInChat: true, // Show thoughts overlay in chat
+    thoughtsInChatStyle: 'corner', // 'corner' or 'inline'
     enableHtmlPrompt: false, // Enable immersive HTML prompt injection
     enableSpotifyMusic: false, // Enable Spotify music integration (asks AI for Spotify URLs)
     customSpotifyPrompt: '', // Custom Spotify prompt text (empty = use default)

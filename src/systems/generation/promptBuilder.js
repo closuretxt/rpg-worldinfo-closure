@@ -14,6 +14,7 @@ import {
     addLockInstruction
 } from './jsonPromptHelpers.js';
 import { applyLocks } from './lockManager.js';
+import { isPresentCharactersEnabled } from '../../utils/presentCharacters.js';
 
 // Type imports
 /** @typedef {import('../../types/inventory.js').InventoryV2} InventoryV2 */
@@ -293,7 +294,7 @@ export function generateTrackerExample() {
         }
     }
 
-    if (extensionSettings.showCharacterThoughts && committedTrackerData.characterThoughts) {
+    if (isPresentCharactersEnabled() && committedTrackerData.characterThoughts) {
         try {
             JSON.parse(committedTrackerData.characterThoughts);
             const lockedData = applyLocks(committedTrackerData.characterThoughts, 'characters');
@@ -329,7 +330,7 @@ export function generateTrackerInstructions(includeHtmlPrompt = true, includeCon
     let instructions = '';
 
     // Check if any trackers are enabled
-    const hasAnyTrackers = extensionSettings.showUserStats || extensionSettings.showInfoBox || extensionSettings.showCharacterThoughts;
+    const hasAnyTrackers = extensionSettings.showUserStats || extensionSettings.showInfoBox || isPresentCharactersEnabled();
 
     // Only add tracker instructions if at least one tracker is enabled
     if (hasAnyTrackers) {
@@ -360,7 +361,7 @@ export function generateTrackerInstructions(includeHtmlPrompt = true, includeCon
         if (extensionSettings.showInfoBox) {
             enabledTrackers.push('infoBox');
         }
-        if (extensionSettings.showCharacterThoughts) {
+        if (isPresentCharactersEnabled()) {
             enabledTrackers.push('characters');
         }
 
@@ -383,7 +384,7 @@ export function generateTrackerInstructions(includeHtmlPrompt = true, includeCon
                 instructions += enabledTrackers.indexOf('infoBox') < enabledTrackers.length - 1 ? ',\n' : '\n';
             }
 
-            if (extensionSettings.showCharacterThoughts) {
+            if (isPresentCharactersEnabled()) {
                 instructions += '  "characters": ';
                 const charactersJSON = buildCharactersJSONInstruction();
                 // Add 2 spaces to all lines after the first to properly nest within root object
@@ -1061,7 +1062,7 @@ export function generateContextualSummary() {
     }
 
     // Add Present Characters tracker data if enabled
-    if (extensionSettings.showCharacterThoughts && committedTrackerData.characterThoughts) {
+    if (isPresentCharactersEnabled() && committedTrackerData.characterThoughts) {
         try {
             const formatted = formatTrackerDataForContext(committedTrackerData.characterThoughts, 'characters', userName);
             if (formatted) {
