@@ -1231,7 +1231,7 @@ export async function generateSeparateUpdatePrompt() {
         try {
             console.log("[RPG Companion] 1. Calling getWorldInfoPrompt...");
             
-            const context = SillyTavern.getContext(); // Ensure you get the global context
+            const context = getContext(); // Ensure you get the global context
             const chat = context.chat; // Get chat from context
 
             // FIX: Map the chat objects to an array of strings (just the text).

@@ -818,10 +818,10 @@ export async function onGenerationStarted(type, data, dryRun) {
             const contextInstructionsText = extensionSettings.customContextInstructionsPrompt || DEFAULT_CONTEXT_INSTRUCTIONS_PROMPT;
 
             const wrappedContext = `
-<context_tracker>
+<context>
 ${contextSummary}
 ${contextInstructionsText}
-</context_tracker>`;
+</context>`;
 
             // Inject context at depth 1 (before last user message) as SYSTEM
             // Skip when a guided generation injection is present to avoid conflicting instructions
