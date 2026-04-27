@@ -15,6 +15,7 @@ import {
 } from './jsonPromptHelpers.js';
 import { applyLocks } from './lockManager.js';
 import { isPresentCharactersEnabled } from '../../utils/presentCharacters.js';
+import { getWorldInfoPrompt } from '../../../../../../world-info.js';
 
 // Type imports
 /** @typedef {import('../../types/inventory.js').InventoryV2} InventoryV2 */
@@ -1220,8 +1221,56 @@ export async function generateSeparateUpdatePrompt() {
 
     systemMessage += `Here is the description of the protagonist for reference:\n`;
     systemMessage += `<protagonist>\n{{persona}}\n</protagonist>\n`;
+    systemMessage += `<scenario>\n{{scenario}}\n</scenario>\n`; 
     systemMessage += `\n`;
 
+    //
+
+    // ---  WORLD INFO FETCHING ---
+    if (typeof getWorldInfoPrompt === 'function') {
+        try {
+            console.log("[RPG Companion] 1. Calling getWorldInfoPrompt...");
+            
+            const context = SillyTavern.getContext(); // Ensure you get the global context
+            const chat = context.chat; // Get chat from context
+
+            // FIX: Map the chat objects to an array of strings (just the text).
+            // SillyTavern's WorldInfo scanner expects ['Hello', 'Hi there'], not objects.
+            const chatStrings = chat.slice().reverse().map(msg => msg.mes);
+
+            // Pass the array of strings
+            let result = await getWorldInfoPrompt(chatStrings, 100000); // ATTENTION: The second argument is the budget, idk how to fetch the settings so I left with one I am okay with.
+            
+            console.log("[RPG Companion] 2. Type of result:", typeof result);
+            console.log("[RPG Companion] 3. Raw result:", result);
+
+            let finalWorldInfoText = "";
+
+            // Unwrap object
+            if (typeof result === 'object' && result !== null) {
+                console.log("[RPG Companion]   -> Detected Object. extracting properties...");
+                const before = result.worldInfoBefore || result.world_info_before || "";
+                const after = result.worldInfoAfter || result.world_info_after || "";
+                finalWorldInfoText = before + "\n" + after;
+            }
+
+            // Inject if we found text
+            if (finalWorldInfoText && finalWorldInfoText.trim().length > 0) {
+                systemMessage += `<world_info>\n${finalWorldInfoText.trim()}\n</world_info>\n`;
+                console.log("[RPG Companion] 4. SUCCESS: Injected World Info into prompt.");
+            } else {
+                console.warn("[RPG Companion] 4. WARNING: World Info was found but text result was empty.");
+            }
+
+        } catch (error) {
+            console.error('[RPG Companion] Error processing World Info:', error);
+        }
+    }
+
+
+    //
+
+    systemMessage += `\n`;
     systemMessage += `Here are the last few messages in the conversation history (between the user and the roleplayer assistant) you should reference when responding:\n<history>`;
 
     messages.push({

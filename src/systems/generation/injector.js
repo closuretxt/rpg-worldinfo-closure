@@ -818,15 +818,15 @@ export async function onGenerationStarted(type, data, dryRun) {
             const contextInstructionsText = extensionSettings.customContextInstructionsPrompt || DEFAULT_CONTEXT_INSTRUCTIONS_PROMPT;
 
             const wrappedContext = `
-<context>
+<context_tracker>
 ${contextSummary}
 ${contextInstructionsText}
-</context>`;
+</context_tracker>`;
 
             // Inject context at depth 1 (before last user message) as SYSTEM
             // Skip when a guided generation injection is present to avoid conflicting instructions
             if (!shouldSuppress) {
-                setExtensionPrompt('rpg-companion-context', wrappedContext, extension_prompt_types.IN_CHAT, 1, false);
+                setExtensionPrompt('rpg-companion-context', wrappedContext, extension_prompt_types.IN_CHAT, 3, false);
             }
             // console.log('[RPG Companion] Injected contextual summary for separate/external mode:', contextSummary);
         } else {
