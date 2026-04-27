@@ -1224,8 +1224,6 @@ export async function generateSeparateUpdatePrompt() {
     systemMessage += `<scenario>\n{{scenario}}\n</scenario>\n`; 
     systemMessage += `\n`;
 
-    //
-
     // ---  WORLD INFO FETCHING ---
     if (typeof getWorldInfoPrompt === 'function') {
         try {
@@ -1239,7 +1237,7 @@ export async function generateSeparateUpdatePrompt() {
             const chatStrings = chat.slice().reverse().map(msg => msg.mes);
 
             // Pass the array of strings
-            let result = await getWorldInfoPrompt(chatStrings, 100000); // ATTENTION: The second argument is the budget, idk how to fetch the settings so I left with one I am okay with.
+            let result = await getWorldInfoPrompt(chatStrings, 20000); // ATTENTION: The second argument is the budget, idk how to fetch the settings so I left with one I am okay with.
             
             console.log("[RPG Companion] 2. Type of result:", typeof result);
             console.log("[RPG Companion] 3. Raw result:", result);
